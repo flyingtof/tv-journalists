@@ -1,10 +1,10 @@
 package org.terrevivante.tvjournalists.api.controller;
 
-import org.terrevivante.tvjournalists.domain.Theme;
-import org.terrevivante.tvjournalists.persistence.ThemeRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.terrevivante.tvjournalists.api.dto.ThemeDTO;
+import org.terrevivante.tvjournalists.application.usecase.ListThemesUseCase;
 
 import java.util.List;
 
@@ -12,15 +12,16 @@ import java.util.List;
 @RequestMapping("/api/v1/themes")
 public class ThemeController {
 
-    private final ThemeRepository themeRepository;
+    private final ListThemesUseCase listThemesUseCase;
 
-    public ThemeController(ThemeRepository themeRepository) {
-        this.themeRepository = themeRepository;
+    public ThemeController(ListThemesUseCase listThemesUseCase) {
+        this.listThemesUseCase = listThemesUseCase;
     }
 
     @GetMapping
-    public List<Theme> getAllThemes() {
-        return themeRepository.findAll();
+    public List<ThemeDTO> getAllThemes() {
+        return listThemesUseCase.listThemes().stream()
+            .map(t -> { ThemeDTO dto = new ThemeDTO(); dto.setId(t.id()); dto.setName(t.name()); return dto; })
+            .toList();
     }
 }
-
