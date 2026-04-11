@@ -69,16 +69,6 @@ public class PersistenceJournalistMapper {
         );
     }
 
-    public JournalistEntity toEntity(Journalist journalist) {
-        JournalistEntity entity = new JournalistEntity();
-        entity.setId(journalist.id());
-        entity.setFirstName(journalist.firstName());
-        entity.setLastName(journalist.lastName());
-        entity.setGlobalEmail(journalist.globalEmail());
-        entity.setGlobalPhone(journalist.globalPhone());
-        return entity;
-    }
-
     public InteractionLogEntity toEntity(InteractionLog log) {
         InteractionLogEntity entity = new InteractionLogEntity();
         entity.setId(log.id());
