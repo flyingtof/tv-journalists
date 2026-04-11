@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tv_journalists
+    username: user
+    password: password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+#    show-sql: true
+#    properties:
+#      hibernate:
+#        format_sql: true
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    locations: classpath:db/migration
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE

@@ -1,0 +1,92 @@
+.profile-root {
+  padding: 24px;
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.profile-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0;
+  color: #111827;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #111827;
+  background: white;
+  border: 1px solid #d1d5db;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.back-button:hover {
+  transform: translateX(-6px);
+  box-shadow: 0 6px 18px rgba(17, 24, 39, 0.08);
+  background: #fafafa;
+}
+
+.profile-card {
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.profile-card:last-child {
+  margin-bottom: 0;
+}
+
+.card-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #111827;
+}
+
+.card-text {
+  margin: 4px 0;
+}
+
+.no-data {
+  color: #6b7280;
+}
+
+.activity-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.activity-item {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 16px 0;
+  transition: opacity 260ms ease, transform 260ms ease;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.theme-tag {
+  background-color: #eef2ff;
+  color: #4338ca;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  margin-right: 8px;
+  display: inline-block;
+  margin-top: 4px;
+}
