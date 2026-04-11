@@ -1,10 +1,10 @@
 package org.terrevivante.tvjournalists.api.controller;
 
-import org.terrevivante.tvjournalists.domain.Media;
-import org.terrevivante.tvjournalists.persistence.MediaRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.terrevivante.tvjournalists.api.dto.MediaDTO;
+import org.terrevivante.tvjournalists.application.usecase.ListMediaUseCase;
 
 import java.util.List;
 
@@ -12,14 +12,16 @@ import java.util.List;
 @RequestMapping("/api/v1/media")
 public class MediaController {
 
-    private final MediaRepository mediaRepository;
+    private final ListMediaUseCase listMediaUseCase;
 
-    public MediaController(MediaRepository mediaRepository) {
-        this.mediaRepository = mediaRepository;
+    public MediaController(ListMediaUseCase listMediaUseCase) {
+        this.listMediaUseCase = listMediaUseCase;
     }
 
     @GetMapping
-    public List<Media> getAllMedia() {
-        return mediaRepository.findAll();
+    public List<MediaDTO> getAllMedia() {
+        return listMediaUseCase.listMedia().stream()
+            .map(m -> new MediaDTO(m.id(), m.name(), m.type(), m.url()))
+            .toList();
     }
 }

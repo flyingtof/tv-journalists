@@ -1,5 +1,6 @@
 package org.terrevivante.tvjournalists.api.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -7,7 +8,7 @@ import java.util.UUID;
 public class InteractionCreateDTO {
     @NotNull
     private LocalDate date;
-    @NotNull
+    @NotBlank
     private String description;
     private UUID activityId;
 

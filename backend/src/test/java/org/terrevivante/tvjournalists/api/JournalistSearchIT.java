@@ -1,10 +1,9 @@
 package org.terrevivante.tvjournalists.api;
 
 import org.terrevivante.tvjournalists.AbstractIntegrationTest;
-import org.terrevivante.tvjournalists.domain.Journalist;
-import org.terrevivante.tvjournalists.domain.Media;
-import org.terrevivante.tvjournalists.domain.Theme;
-import org.terrevivante.tvjournalists.domain.Activity;
+import org.terrevivante.tvjournalists.domain.model.MediaType;
+import org.terrevivante.tvjournalists.infrastructure.persistence.entity.MediaEntity;
+import org.terrevivante.tvjournalists.infrastructure.persistence.entity.ThemeEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,30 +29,15 @@ class JournalistSearchIT extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        Theme biodiversity = new Theme();
-        biodiversity.setName("Biodiversity");
-        entityManager.persist(biodiversity);
+        JournalistFixtures fixtures = new JournalistFixtures(entityManager);
 
-        Media press = new Media();
-        press.setName("Green Press");
-        press.setType(Media.MediaType.PRESS);
-        entityManager.persist(press);
+        ThemeEntity biodiversity = fixtures.persistTheme("Biodiversity");
+        MediaEntity press = fixtures.persistMedia("Green Press", MediaType.PRESS);
+        fixtures.persistJournalistWithActivity("Alice", "Green", press, biodiversity);
+        fixtures.persistJournalist("Bob", "Brown");
 
-        Journalist j1 = new Journalist("Alice", "Green");
-        entityManager.persist(j1);
-
-        Activity a1 = new Activity();
-        a1.setJournalist(j1);
-        a1.setMedia(press);
-        a1.getThemes().add(biodiversity);
-        j1.getActivities().add(a1); // Bidirectional consistency
-        entityManager.persist(a1);
-
-        Journalist j2 = new Journalist("Bob", "Brown");
-        entityManager.persist(j2);
-        
         entityManager.flush();
-        entityManager.clear(); // Clear to force reload from DB
+        entityManager.clear();
     }
 
     @Test
@@ -73,6 +57,58 @@ class JournalistSearchIT extends AbstractIntegrationTest {
                 .param("media", "Green Press"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.content[0].firstName").value("Alice"));
+    }
+
+    @Test
+    @WithMockUser
+    void responseHasSpringPageCompatibleShape() throws Exception {
+        mockMvc.perform(get("/api/v1/journalists"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content").isArray())
+            .andExpect(jsonPath("$.totalPages").isNumber())
+            .andExpect(jsonPath("$.number").isNumber())
+            .andExpect(jsonPath("$.size").isNumber())
+            .andExpect(jsonPath("$.totalElements").isNumber())
+            .andExpect(jsonPath("$.first").isBoolean())
+            .andExpect(jsonPath("$.last").isBoolean())
+            .andExpect(jsonPath("$.numberOfElements").isNumber())
+            .andExpect(jsonPath("$.empty").isBoolean());
+    }
+
+    @Test
+    @WithMockUser
+    void combinedMediaAndThemeFilter_doesNotProduceDuplicateJournalists() throws Exception {
+        // Alice already has activity: Green Press + Biodiversity (from setUp).
+        // Add a second activity for Alice with a different media but the same theme.
+        JournalistFixtures fixtures = new JournalistFixtures(entityManager);
+        MediaEntity secondMedia = fixtures.persistMedia("Blue Radio");
+        ThemeEntity biodiversity = entityManager
+                .createQuery("select t from ThemeEntity t where t.name = 'Biodiversity'",
+                        org.terrevivante.tvjournalists.infrastructure.persistence.entity.ThemeEntity.class)
+                .getSingleResult();
+        org.terrevivante.tvjournalists.infrastructure.persistence.entity.JournalistEntity alice = entityManager
+                .createQuery("select j from JournalistEntity j where j.firstName = 'Alice'",
+                        org.terrevivante.tvjournalists.infrastructure.persistence.entity.JournalistEntity.class)
+                .getSingleResult();
+
+        org.terrevivante.tvjournalists.infrastructure.persistence.entity.ActivityEntity second =
+                new org.terrevivante.tvjournalists.infrastructure.persistence.entity.ActivityEntity();
+        second.setJournalist(alice);
+        second.setMedia(secondMedia);
+        second.getThemes().add(biodiversity);
+        entityManager.persist(second);
+        entityManager.flush();
+        entityManager.clear();
+
+        // Filtering by Green Press AND Biodiversity should return exactly ONE journalist
+        // (Alice), not two — even though Alice now has two activities matching themes.
+        mockMvc.perform(get("/api/v1/journalists")
+                .param("media", "Green Press")
+                .param("themes", "Biodiversity"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.content.length()").value(1))
+            .andExpect(jsonPath("$.totalElements").value(1))
             .andExpect(jsonPath("$.content[0].firstName").value("Alice"));
     }
 }
