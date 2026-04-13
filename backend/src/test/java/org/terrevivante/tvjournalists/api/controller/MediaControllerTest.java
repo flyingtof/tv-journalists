@@ -25,8 +25,8 @@ class MediaControllerTest {
         List<MediaDTO> result = controller.getAllMedia();
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getName()).isEqualTo("Green Press");
-        assertThat(result.get(0).getType()).isEqualTo(MediaType.PRESS);
+        assertThat(result.get(0).name()).isEqualTo("Green Press");
+        assertThat(result.get(0).type()).isEqualTo(MediaType.PRESS);
         verify(listMediaUseCase).listMedia();
     }
 }

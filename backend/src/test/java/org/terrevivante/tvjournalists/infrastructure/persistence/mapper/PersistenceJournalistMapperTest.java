@@ -1,7 +1,6 @@
 package org.terrevivante.tvjournalists.infrastructure.persistence.mapper;
 
 import org.junit.jupiter.api.Test;
-import org.mapstruct.factory.Mappers;
 import org.terrevivante.tvjournalists.domain.model.Activity;
 import org.terrevivante.tvjournalists.domain.model.InteractionLog;
 import org.terrevivante.tvjournalists.domain.model.Journalist;
@@ -22,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class PersistenceJournalistMapperTest {
 
-    private final PersistenceJournalistMapper mapper = Mappers.getMapper(PersistenceJournalistMapper.class);
+    private final PersistenceJournalistMapper mapper = new PersistenceJournalistMapperImpl();
 
     // ── toDomain(JournalistEntity) ────────────────────────────────────────────
 
@@ -67,6 +66,17 @@ class PersistenceJournalistMapperTest {
 
         assertThat(domain.activities()).hasSize(1);
         assertThat(domain.activities().getFirst().media().name()).isEqualTo("Daily News");
+    }
+
+    @Test
+    void toDomain_journalist_withNullActivities_returnsEmptyActivities() {
+        JournalistEntity entity = new JournalistEntity("Bob", "Smith");
+        entity.setId(UUID.randomUUID());
+        entity.setActivities(null);
+
+        Journalist domain = mapper.toDomain(entity);
+
+        assertThat(domain.activities()).isEmpty();
     }
 
     // ── toDomain(ActivityEntity) ──────────────────────────────────────────────
@@ -116,6 +126,18 @@ class PersistenceJournalistMapperTest {
         Theme theme = domain.themes().getFirst();
         assertThat(theme.id()).isEqualTo(themeId);
         assertThat(theme.name()).isEqualTo("Climate");
+    }
+
+    @Test
+    void toDomain_activity_withNullThemes_returnsEmptyThemes() {
+        ActivityEntity entity = new ActivityEntity();
+        entity.setId(UUID.randomUUID());
+        entity.setMedia(mediaEntity("EcoPress"));
+        entity.setThemes(null);
+
+        Activity domain = mapper.toDomain(entity);
+
+        assertThat(domain.themes()).isEmpty();
     }
 
     @Test
@@ -182,9 +204,10 @@ class PersistenceJournalistMapperTest {
         UUID activityId = UUID.randomUUID();
         UUID createdBy = UUID.randomUUID();
         LocalDate date = LocalDate.of(2024, 7, 4);
+        OffsetDateTime createdAt = OffsetDateTime.now();
 
         InteractionLog domain = new InteractionLog(id, journalistId, activityId,
-                date, "Press briefing", createdBy, null);
+                date, "Press briefing", createdBy, createdAt);
 
         InteractionLogEntity entity = mapper.toEntity(domain);
 
@@ -194,7 +217,7 @@ class PersistenceJournalistMapperTest {
         assertThat(entity.getDate()).isEqualTo(date);
         assertThat(entity.getDescription()).isEqualTo("Press briefing");
         assertThat(entity.getCreatedBy()).isEqualTo(createdBy);
-        assertThat(entity.getCreatedAt()).isNull();
+        assertThat(entity.getCreatedAt()).isEqualTo(createdAt);
     }
 
     // ── toDomainList(List<JournalistEntity>) ──────────────────────────────────
@@ -241,7 +264,7 @@ class PersistenceJournalistMapperTest {
 
         mapper.attachThemes(List.of(journalist), List.of(withThemes));
 
-        assertThat(journalist.getActivities().get(0).getThemes())
+        assertThat(journalist.getActivities().getFirst().getThemes())
             .hasSize(1)
             .extracting(ThemeEntity::getName)
             .containsExactly("Climate");
@@ -258,7 +281,7 @@ class PersistenceJournalistMapperTest {
         // themes list does not contain this activity → null guard must fire
         mapper.attachThemes(List.of(journalist), List.of());
 
-        assertThat(journalist.getActivities().get(0).getThemes()).isEmpty();
+        assertThat(journalist.getActivities().getFirst().getThemes()).isEmpty();
     }
 
     @Test
@@ -279,7 +302,7 @@ class PersistenceJournalistMapperTest {
 
         mapper.attachThemes(List.of(journalist), List.of(withNoThemes));
 
-        assertThat(journalist.getActivities().get(0).getThemes()).isEmpty();
+        assertThat(journalist.getActivities().getFirst().getThemes()).isEmpty();
     }
 
     @Test
@@ -312,9 +335,9 @@ class PersistenceJournalistMapperTest {
 
         mapper.attachThemes(List.of(j1, j2), List.of(withThemesA, withThemesB));
 
-        assertThat(j1.getActivities().get(0).getThemes())
+        assertThat(j1.getActivities().getFirst().getThemes())
             .extracting(ThemeEntity::getName).containsExactly("Politics");
-        assertThat(j2.getActivities().get(0).getThemes())
+        assertThat(j2.getActivities().getFirst().getThemes())
             .extracting(ThemeEntity::getName).containsExactly("Sport");
     }
 
