@@ -1,5 +1,7 @@
 # TV Journalists - Relations Management
 
+[![CI](https://github.com/flyingtof/tv-journalists/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/flyingtof/tv-journalists/actions/workflows/ci.yml)
+
 A relations management application for Terre Vivante to manage journalists and influencers, focusing on environmental themes.
 
 ## Tech Stack
