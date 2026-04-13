@@ -1,97 +1,53 @@
 package org.terrevivante.tvjournalists.infrastructure.persistence.mapper;
 
-import org.springframework.stereotype.Component;
-import org.terrevivante.tvjournalists.domain.model.*;
-import org.terrevivante.tvjournalists.infrastructure.persistence.entity.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.terrevivante.tvjournalists.domain.model.Activity;
+import org.terrevivante.tvjournalists.domain.model.InteractionLog;
+import org.terrevivante.tvjournalists.domain.model.Journalist;
+import org.terrevivante.tvjournalists.domain.model.Media;
+import org.terrevivante.tvjournalists.domain.model.Theme;
+import org.terrevivante.tvjournalists.infrastructure.persistence.entity.ActivityEntity;
+import org.terrevivante.tvjournalists.infrastructure.persistence.entity.InteractionLogEntity;
+import org.terrevivante.tvjournalists.infrastructure.persistence.entity.JournalistEntity;
+import org.terrevivante.tvjournalists.infrastructure.persistence.entity.MediaEntity;
+import org.terrevivante.tvjournalists.infrastructure.persistence.entity.ThemeEntity;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Component
-public class PersistenceJournalistMapper {
+@Mapper(componentModel = "spring")
+public interface PersistenceJournalistMapper {
 
-    public Journalist toDomain(JournalistEntity entity) {
-        List<Activity> activities = entity.getActivities().stream()
-            .map(this::toDomain)
-            .toList();
-        return new Journalist(
-            entity.getId(),
-            entity.getFirstName(),
-            entity.getLastName(),
-            entity.getGlobalEmail(),
-            entity.getGlobalPhone(),
-            entity.getCreatedAt(),
-            entity.getUpdatedAt(),
-            activities
-        );
-    }
+    Journalist toDomain(JournalistEntity entity);
 
-    /** Maps a page of journalist entities (with activities+media loaded) to domain records. */
-    public List<Journalist> toDomainList(List<JournalistEntity> entities) {
-        return entities.stream()
-            .map(this::toDomain)
-            .toList();
-    }
+    List<Journalist> toDomainList(List<JournalistEntity> entities);
 
-    public Activity toDomain(ActivityEntity entity) {
-        List<Theme> themes = entity.getThemes().stream()
-            .map(this::toDomain)
-            .toList();
-        return new Activity(
-            entity.getId(),
-            entity.getJournalist() != null ? entity.getJournalist().getId() : null,
-            toDomain(entity.getMedia()),
-            entity.getRole(),
-            entity.getSpecificEmail(),
-            entity.getSpecificPhone(),
-            themes
-        );
-    }
+    @Mapping(source = "journalist.id", target = "journalistId")
+    Activity toDomain(ActivityEntity entity);
 
-    public Media toDomain(MediaEntity entity) {
-        return new Media(entity.getId(), entity.getName(), entity.getType(), entity.getUrl());
-    }
+    Media toDomain(MediaEntity entity);
 
-    public Theme toDomain(ThemeEntity entity) {
-        return new Theme(entity.getId(), entity.getName());
-    }
+    Theme toDomain(ThemeEntity entity);
 
-    public InteractionLog toDomain(InteractionLogEntity entity) {
-        return new InteractionLog(
-            entity.getId(),
-            entity.getJournalistId(),
-            entity.getActivityId(),
-            entity.getDate(),
-            entity.getDescription(),
-            entity.getCreatedBy(),
-            entity.getCreatedAt()
-        );
-    }
+    InteractionLog toDomain(InteractionLogEntity entity);
 
-    public InteractionLogEntity toEntity(InteractionLog log) {
-        InteractionLogEntity entity = new InteractionLogEntity();
-        entity.setId(log.id());
-        entity.setJournalistId(log.journalistId());
-        entity.setActivityId(log.activityId());
-        entity.setDate(log.date());
-        entity.setDescription(log.description());
-        entity.setCreatedBy(log.createdBy());
-        return entity;
-    }
+    InteractionLogEntity toEntity(InteractionLog log);
 
     /**
      * Attaches theme entities (fetched separately) to the activities already loaded on each journalist.
      * This avoids N+1 when the theme collection is lazily loaded after pagination.
      */
-    public void attachThemes(List<JournalistEntity> journalists, List<ActivityEntity> activitiesWithThemes) {
-        Map<java.util.UUID, ActivityEntity> byId = activitiesWithThemes.stream()
-            .collect(Collectors.toMap(ActivityEntity::getId, a -> a));
-        for (JournalistEntity j : journalists) {
-            j.getActivities().forEach(a -> {
-                ActivityEntity withThemes = byId.get(a.getId());
+    default void attachThemes(List<JournalistEntity> journalists, List<ActivityEntity> activitiesWithThemes) {
+        Map<UUID, ActivityEntity> byId = activitiesWithThemes.stream()
+            .collect(Collectors.toMap(ActivityEntity::getId, activity -> activity));
+        for (JournalistEntity journalist : journalists) {
+            journalist.getActivities().forEach(activity -> {
+                ActivityEntity withThemes = byId.get(activity.getId());
                 if (withThemes != null) {
-                    a.setThemes(withThemes.getThemes());
+                    activity.setThemes(withThemes.getThemes());
                 }
             });
         }
