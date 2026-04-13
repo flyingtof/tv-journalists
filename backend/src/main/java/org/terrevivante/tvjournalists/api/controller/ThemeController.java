@@ -21,7 +21,7 @@ public class ThemeController {
     @GetMapping
     public List<ThemeDTO> getAllThemes() {
         return listThemesUseCase.listThemes().stream()
-            .map(t -> { ThemeDTO dto = new ThemeDTO(); dto.setId(t.id()); dto.setName(t.name()); return dto; })
+            .map(t -> new ThemeDTO(t.id(), t.name()))
             .toList();
     }
 }

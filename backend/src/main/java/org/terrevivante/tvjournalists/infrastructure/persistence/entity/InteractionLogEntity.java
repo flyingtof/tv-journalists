@@ -1,6 +1,9 @@
 package org.terrevivante.tvjournalists.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
@@ -9,6 +12,9 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "interaction_log")
+@Getter
+@Setter
+@NoArgsConstructor
 public class InteractionLogEntity {
 
     @Id
@@ -33,21 +39,4 @@ public class InteractionLogEntity {
     @CreationTimestamp
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
-
-    public InteractionLogEntity() {}
-
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-    public UUID getJournalistId() { return journalistId; }
-    public void setJournalistId(UUID journalistId) { this.journalistId = journalistId; }
-    public UUID getActivityId() { return activityId; }
-    public void setActivityId(UUID activityId) { this.activityId = activityId; }
-    public LocalDate getDate() { return date; }
-    public void setDate(LocalDate date) { this.date = date; }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    public UUID getCreatedBy() { return createdBy; }
-    public void setCreatedBy(UUID createdBy) { this.createdBy = createdBy; }
-    public OffsetDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
 }

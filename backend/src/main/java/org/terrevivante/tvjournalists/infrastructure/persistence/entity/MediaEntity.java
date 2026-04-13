@@ -1,12 +1,18 @@
 package org.terrevivante.tvjournalists.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.terrevivante.tvjournalists.domain.model.MediaType;
 
 import java.util.UUID;
 
 @Entity
 @Table(name = "media")
+@Getter
+@Setter
+@NoArgsConstructor
 public class MediaEntity {
 
     @Id
@@ -22,15 +28,4 @@ public class MediaEntity {
 
     @Column(name = "url")
     private String url;
-
-    public MediaEntity() {}
-
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public MediaType getType() { return type; }
-    public void setType(MediaType type) { this.type = type; }
-    public String getUrl() { return url; }
-    public void setUrl(String url) { this.url = url; }
 }

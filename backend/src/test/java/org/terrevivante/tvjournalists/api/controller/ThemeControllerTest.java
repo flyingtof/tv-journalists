@@ -24,7 +24,7 @@ class ThemeControllerTest {
         List<ThemeDTO> result = controller.getAllThemes();
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getName()).isEqualTo("Biodiversity");
+        assertThat(result.get(0).name()).isEqualTo("Biodiversity");
         verify(listThemesUseCase).listThemes();
     }
 }

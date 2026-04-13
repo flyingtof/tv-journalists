@@ -8,10 +8,7 @@ import org.terrevivante.tvjournalists.application.command.CreateJournalistComman
 import org.terrevivante.tvjournalists.application.command.LogInteractionCommand;
 import org.terrevivante.tvjournalists.domain.model.*;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
@@ -45,9 +42,10 @@ public interface JournalistMapper {
 
     @Named("themesToOrderedSet")
     default Set<ThemeDTO> themesToOrderedSet(List<Theme> themes) {
-        if (themes == null) return null;
+        if (themes == null) return Collections.emptySet();
         return themes.stream()
-                .map(this::toDto)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+            .map(this::toDto)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
     }
+
 }

@@ -1,6 +1,9 @@
 package org.terrevivante.tvjournalists.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +11,9 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "activity")
+@Getter
+@Setter
+@NoArgsConstructor
 public class ActivityEntity {
 
     @Id
@@ -38,21 +44,4 @@ public class ActivityEntity {
         inverseJoinColumns = @JoinColumn(name = "theme_id")
     )
     private List<ThemeEntity> themes = new ArrayList<>();
-
-    public ActivityEntity() {}
-
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-    public JournalistEntity getJournalist() { return journalist; }
-    public void setJournalist(JournalistEntity journalist) { this.journalist = journalist; }
-    public MediaEntity getMedia() { return media; }
-    public void setMedia(MediaEntity media) { this.media = media; }
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
-    public String getSpecificEmail() { return specificEmail; }
-    public void setSpecificEmail(String specificEmail) { this.specificEmail = specificEmail; }
-    public String getSpecificPhone() { return specificPhone; }
-    public void setSpecificPhone(String specificPhone) { this.specificPhone = specificPhone; }
-    public List<ThemeEntity> getThemes() { return themes; }
-    public void setThemes(List<ThemeEntity> themes) { this.themes = themes; }
 }

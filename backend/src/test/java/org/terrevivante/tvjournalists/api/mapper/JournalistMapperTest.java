@@ -1,7 +1,6 @@
 package org.terrevivante.tvjournalists.api.mapper;
 
 import org.junit.jupiter.api.Test;
-import org.mapstruct.factory.Mappers;
 import org.terrevivante.tvjournalists.api.dto.ActivityDTO;
 import org.terrevivante.tvjournalists.api.dto.InteractionCreateDTO;
 import org.terrevivante.tvjournalists.api.dto.JournalistCreateDTO;
@@ -27,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class JournalistMapperTest {
 
-    private final JournalistMapper mapper = Mappers.getMapper(JournalistMapper.class);
+    private final JournalistMapper mapper = new  JournalistMapperImpl();
 
     // ── toDto(Journalist) ─────────────────────────────────────────────────────
 
@@ -40,11 +39,11 @@ class JournalistMapperTest {
 
         JournalistDTO dto = mapper.toDto(journalist);
 
-        assertThat(dto.getId()).isEqualTo(id);
-        assertThat(dto.getFirstName()).isEqualTo("Alice");
-        assertThat(dto.getLastName()).isEqualTo("Green");
-        assertThat(dto.getGlobalEmail()).isEqualTo("alice@example.com");
-        assertThat(dto.getGlobalPhone()).isEqualTo("+33600000000");
+        assertThat(dto.id()).isEqualTo(id);
+        assertThat(dto.firstName()).isEqualTo("Alice");
+        assertThat(dto.lastName()).isEqualTo("Green");
+        assertThat(dto.globalEmail()).isEqualTo("alice@example.com");
+        assertThat(dto.globalPhone()).isEqualTo("+33600000000");
     }
 
     @Test
@@ -64,13 +63,13 @@ class JournalistMapperTest {
 
         JournalistDTO dto = mapper.toDto(journalist);
 
-        assertThat(dto.getActivities()).hasSize(1);
-        ActivityDTO actDto = dto.getActivities().getFirst();
-        assertThat(actDto.getId()).isEqualTo(activityId);
-        assertThat(actDto.getThemes()).hasSize(1);
-        ThemeDTO themeDto = actDto.getThemes().iterator().next();
-        assertThat(themeDto.getId()).isEqualTo(themeId);
-        assertThat(themeDto.getName()).isEqualTo("Biodiversity");
+        assertThat(dto.activities()).hasSize(1);
+        ActivityDTO actDto = dto.activities().getFirst();
+        assertThat(actDto.id()).isEqualTo(activityId);
+        assertThat(actDto.themes()).hasSize(1);
+        ThemeDTO themeDto = actDto.themes().iterator().next();
+        assertThat(themeDto.id()).isEqualTo(themeId);
+        assertThat(themeDto.name()).isEqualTo("Biodiversity");
     }
 
     @Test
@@ -89,8 +88,8 @@ class JournalistMapperTest {
 
         ActivityDTO dto = mapper.toDto(activity);
 
-        assertThat(dto.getMediaId()).isEqualTo(mediaId);
-        assertThat(dto.getMediaName()).isEqualTo("Le Monde");
+        assertThat(dto.mediaId()).isEqualTo(mediaId);
+        assertThat(dto.mediaName()).isEqualTo("Le Monde");
     }
 
     @Test
@@ -103,9 +102,9 @@ class JournalistMapperTest {
 
         ActivityDTO dto = mapper.toDto(activity);
 
-        Set<ThemeDTO> themes = dto.getThemes();
+        Set<ThemeDTO> themes = dto.themes();
         assertThat(themes).isInstanceOf(LinkedHashSet.class);
-        List<UUID> ids = themes.stream().map(ThemeDTO::getId).toList();
+        List<UUID> ids = themes.stream().map(ThemeDTO::id).toList();
         assertThat(ids).containsExactly(t1, t2);
     }
 
@@ -121,8 +120,8 @@ class JournalistMapperTest {
         UUID id = UUID.randomUUID();
         ThemeDTO dto = mapper.toDto(new Theme(id, "Environment"));
 
-        assertThat(dto.getId()).isEqualTo(id);
-        assertThat(dto.getName()).isEqualTo("Environment");
+        assertThat(dto.id()).isEqualTo(id);
+        assertThat(dto.name()).isEqualTo("Environment");
     }
 
     @Test
@@ -149,10 +148,10 @@ class JournalistMapperTest {
 
         var dto = mapper.toDto(log);
 
-        assertThat(dto.getId()).isEqualTo(id);
-        assertThat(dto.getDate()).isEqualTo(date);
-        assertThat(dto.getDescription()).isEqualTo("Met at conference");
-        assertThat(dto.getActivityId()).isEqualTo(activityId);
+        assertThat(dto.id()).isEqualTo(id);
+        assertThat(dto.date()).isEqualTo(date);
+        assertThat(dto.description()).isEqualTo("Met at conference");
+        assertThat(dto.activityId()).isEqualTo(activityId);
     }
 
     // ── toCommand(UUID, InteractionCreateDTO) ─────────────────────────────────
@@ -228,6 +227,6 @@ class JournalistMapperTest {
 
     @Test
     void toCommand_createJournalist_withNullDto_returnsNull() {
-        assertThat(mapper.toCommand((JournalistCreateDTO) null)).isNull();
+        assertThat(mapper.toCommand(null)).isNull();
     }
 }
