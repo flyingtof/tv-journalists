@@ -3,12 +3,24 @@ package org.terrevivante.tvjournalists.api.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.terrevivante.tvjournalists.api.dto.*;
+import org.terrevivante.tvjournalists.api.dto.ActivityDTO;
+import org.terrevivante.tvjournalists.api.dto.InteractionCreateDTO;
+import org.terrevivante.tvjournalists.api.dto.InteractionDTO;
+import org.terrevivante.tvjournalists.api.dto.JournalistCreateDTO;
+import org.terrevivante.tvjournalists.api.dto.JournalistDTO;
+import org.terrevivante.tvjournalists.api.dto.ThemeDTO;
 import org.terrevivante.tvjournalists.application.command.CreateJournalistCommand;
 import org.terrevivante.tvjournalists.application.command.LogInteractionCommand;
-import org.terrevivante.tvjournalists.domain.model.*;
+import org.terrevivante.tvjournalists.domain.model.Activity;
+import org.terrevivante.tvjournalists.domain.model.InteractionLog;
+import org.terrevivante.tvjournalists.domain.model.Journalist;
+import org.terrevivante.tvjournalists.domain.model.Theme;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
