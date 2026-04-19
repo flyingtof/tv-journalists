@@ -25,42 +25,61 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadCurrentUser = useCallback(async (fetchCurrentUser: () => Promise<Response>) => {
-    setIsLoading(true);
-
+  const fetchCurrentUser = useCallback(async (requestCurrentUser: () => Promise<Response>) => {
     try {
-      const response = await fetchCurrentUser();
-      const user = (await response.json()) as CurrentUser;
-      setCurrentUser(user);
-      return user;
+      const response = await requestCurrentUser();
+      return (await response.json()) as CurrentUser;
     } catch (error) {
       if (error instanceof UnauthorizedError) {
-        setCurrentUser(null);
         return null;
       }
 
+      throw error;
+    }
+  }, []);
+
+  const refreshCurrentUser = useCallback(async () => {
+    setIsLoading(true);
+
+    try {
+      const user = await fetchCurrentUser(() => fetchWithAuth('/api/v1/auth/me'));
+      setCurrentUser(user);
+      return user;
+    } catch (error) {
       setCurrentUser(null);
       throw error;
     } finally {
       setIsLoading(false);
     }
-  }, []);
-
-  const refreshCurrentUser = useCallback(
-    () => loadCurrentUser(() => fetchWithAuth('/api/v1/auth/me')),
-    [loadCurrentUser],
-  );
-
-  const bootstrapCurrentUser = useCallback(
-    () => loadCurrentUser(() => fetchAuthBootstrap('/api/v1/auth/me')),
-    [loadCurrentUser],
-  );
+  }, [fetchCurrentUser]);
 
   useEffect(() => {
-    void bootstrapCurrentUser().catch((error) => {
-      console.error('Failed to load current user:', error);
-    });
-  }, [bootstrapCurrentUser]);
+    let isMounted = true;
+
+    const bootstrapCurrentUser = async () => {
+      try {
+        const user = await fetchCurrentUser(() => fetchAuthBootstrap('/api/v1/auth/me'));
+        if (isMounted) {
+          setCurrentUser(user);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setCurrentUser(null);
+        }
+        console.error('Failed to load current user:', error);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void bootstrapCurrentUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchCurrentUser]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

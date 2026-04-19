@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import '../styles/Autocomplete.css';
 
 interface AutocompleteProps {
   suggestions: string[];
-  // optional controlled value; if omitted the component uses internal input state
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSelect: (value: string) => void;
@@ -16,15 +15,15 @@ interface AutocompleteProps {
 export const Autocomplete: React.FC<AutocompleteProps> = ({ suggestions, value, onChange, onSelect, onKeyDown, name, id, placeholder }) => {
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [inputValue, setInputValue] = useState<string>(value ?? '');
-
-  useEffect(() => {
-    setInputValue(value ?? '');
-  }, [value]);
+  const [internalValue, setInternalValue] = useState('');
+  const isControlled = value !== undefined;
+  const inputValue = isControlled ? value : internalValue;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const userInput = e.currentTarget.value;
-    setInputValue(userInput);
+    if (!isControlled) {
+      setInternalValue(userInput);
+    }
     const filtered = suggestions.filter(
       suggestion => suggestion.toLowerCase().indexOf(userInput.toLowerCase()) > -1
     );
@@ -36,7 +35,9 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({ suggestions, value, 
   const handleClick = (suggestion: string) => {
     onSelect(suggestion);
     setShowSuggestions(false);
-    setInputValue('');
+    if (!isControlled) {
+      setInternalValue('');
+    }
   };
 
   const suggestionsListComponent = () => {
