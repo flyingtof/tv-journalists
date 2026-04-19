@@ -19,6 +19,7 @@
   display: flex;
   height: 64px;
   align-items: center;
+  justify-content: space-between;
   gap: 32px;
 }
 
@@ -32,6 +33,15 @@
   display: flex;
   gap: 24px;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.nav-links-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex: 1;
 }
 
 .nav-link {
@@ -45,6 +55,75 @@
   color: #4f46e5;
 }
 
+.nav-user-panel {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+
+.nav-user-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.nav-user-name {
+  color: #111827;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.nav-role-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.nav-role-badge {
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+}
+
+.nav-role-badge-admin {
+  background-color: #ede9fe;
+  color: #5b21b6;
+}
+
+.nav-status {
+  color: #6b7280;
+  font-size: 14px;
+}
+
 .main-content {
   /* add any global main padding if needed */
+}
+
+@media (max-width: 900px) {
+  .nav-inner {
+    height: auto;
+    align-items: flex-start;
+    padding: 16px 0;
+  }
+
+  .nav-links-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .nav-user-panel,
+  .nav-user-details {
+    align-items: flex-start;
+  }
+
+  .nav-role-list {
+    justify-content: flex-start;
+  }
 }

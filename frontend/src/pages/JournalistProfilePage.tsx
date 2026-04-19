@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import type { Journalist } from '../types';
-import { fetchWithAuth } from '../api/apiClient';
+import { fetchWithAuth, UnauthorizedError } from '../api/apiClient';
 import '../styles/Profile.css';
 
 export const JournalistProfilePage: React.FC = () => {
@@ -18,7 +18,7 @@ export const JournalistProfilePage: React.FC = () => {
         const data = await res.json();
         setJournalist(data);
       } catch (error) {
-        if ((error as Error).message !== 'Unauthorized') {
+        if (!(error instanceof UnauthorizedError)) {
           console.error('Failed to fetch journalist profile:', error);
         }
       } finally {

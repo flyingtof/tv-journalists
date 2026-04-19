@@ -40,3 +40,21 @@ export interface Page<T> {
   numberOfElements: number;
   empty: boolean;
 }
+
+export type UserRole = 'ADMIN' | 'USER';
+
+export interface UserSummary {
+  id: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  enabled: boolean;
+  roles: UserRole[];
+}
+
+export interface CurrentUser {
+  username: string;
+  firstName: string;
+  lastName: string;
+  roles: UserRole[];
+}
