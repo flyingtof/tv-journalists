@@ -1,47 +1,59 @@
 package org.terrevivante.tvjournalists.application.command;
 
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class LogInteractionCommandTest {
 
+    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
     @Test
     void shouldRejectNullJournalistId() {
-        assertThatThrownBy(() -> new LogInteractionCommand(null, null, LocalDate.now(), "some event", null))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("journalistId");
+        LogInteractionCommand command = new LogInteractionCommand(null, null, LocalDate.now(), "some event", null);
+
+        assertThat(validator.validate(command))
+            .extracting(violation -> violation.getPropertyPath().toString())
+            .containsExactly("journalistId");
     }
 
     @Test
     void shouldRejectNullDate() {
-        assertThatThrownBy(() -> new LogInteractionCommand(UUID.randomUUID(), null, null, "some event", null))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("date");
+        LogInteractionCommand command = new LogInteractionCommand(UUID.randomUUID(), null, null, "some event", null);
+
+        assertThat(validator.validate(command))
+            .extracting(violation -> violation.getPropertyPath().toString())
+            .containsExactly("date");
     }
 
     @Test
     void shouldRejectNullDescription() {
-        assertThatThrownBy(() -> new LogInteractionCommand(UUID.randomUUID(), null, LocalDate.now(), null, null))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("description");
+        LogInteractionCommand command = new LogInteractionCommand(UUID.randomUUID(), null, LocalDate.now(), null, null);
+
+        assertThat(validator.validate(command))
+            .extracting(violation -> violation.getPropertyPath().toString())
+            .containsExactly("description");
     }
 
     @Test
     void shouldRejectBlankDescription() {
-        assertThatThrownBy(() -> new LogInteractionCommand(UUID.randomUUID(), null, LocalDate.now(), "  ", null))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("description");
+        LogInteractionCommand command = new LogInteractionCommand(UUID.randomUUID(), null, LocalDate.now(), "  ", null);
+
+        assertThat(validator.validate(command))
+            .extracting(violation -> violation.getPropertyPath().toString())
+            .containsExactly("description");
     }
 
     @Test
     void shouldAcceptValidCommandWithOptionalActivityId() {
         LogInteractionCommand cmd = new LogInteractionCommand(
             UUID.randomUUID(), null, LocalDate.now(), "Press conference", null);
+        assertThat(validator.validate(cmd)).isEmpty();
         assertThat(cmd.description()).isEqualTo("Press conference");
     }
 
@@ -49,14 +61,18 @@ class LogInteractionCommandTest {
     void shouldAcceptValidCommandWithActivityId() {
         LogInteractionCommand cmd = new LogInteractionCommand(
             UUID.randomUUID(), UUID.randomUUID(), LocalDate.now(), "Interview", null);
+        assertThat(validator.validate(cmd)).isEmpty();
         assertThat(cmd.activityId()).isNotNull();
     }
 
     @Test
     void shouldRejectFutureDate() {
         LocalDate tomorrow = LocalDate.now().plusDays(1);
-        assertThatThrownBy(() -> new LogInteractionCommand(UUID.randomUUID(), null, tomorrow, "Press conference", null))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("future");
+        LogInteractionCommand command =
+            new LogInteractionCommand(UUID.randomUUID(), null, tomorrow, "Press conference", null);
+
+        assertThat(validator.validate(command))
+            .extracting(violation -> violation.getPropertyPath().toString())
+            .containsExactly("date");
     }
 }

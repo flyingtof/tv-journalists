@@ -54,6 +54,27 @@ public class JournalistControllerIT extends AbstractIntegrationTest {
 
     @Test
     @WithMockUser
+    void shouldReturnStructuredValidationErrorsWhenJournalistEmailIsInvalid() throws Exception {
+        String journalistJson = """
+            {
+                "firstName": "John",
+                "lastName": "Doe",
+                "globalEmail": "not-an-email"
+            }
+            """;
+
+        mockMvc.perform(post("/api/v1/journalists")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(journalistJson))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Validation failed"))
+            .andExpect(jsonPath("$.errors.length()").value(1))
+            .andExpect(jsonPath("$.errors[0].field").value("globalEmail"))
+            .andExpect(jsonPath("$.errors[0].message").value("must be a well-formed email address"));
+    }
+
+    @Test
+    @WithMockUser
     void shouldReturn400WhenPageIsNegative() throws Exception {
         mockMvc.perform(get("/api/v1/journalists")
                 .param("page", "-1"))

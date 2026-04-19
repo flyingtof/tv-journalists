@@ -2,6 +2,7 @@ package org.terrevivante.tvjournalists.application.service;
 
 import org.terrevivante.tvjournalists.application.command.CreateJournalistCommand;
 import org.terrevivante.tvjournalists.application.exception.JournalistNotFoundException;
+import org.terrevivante.tvjournalists.application.validation.ApplicationValidator;
 import org.terrevivante.tvjournalists.application.usecase.CreateJournalistUseCase;
 import org.terrevivante.tvjournalists.application.usecase.GetJournalistUseCase;
 import org.terrevivante.tvjournalists.application.usecase.SearchJournalistsUseCase;
@@ -18,13 +19,17 @@ public class JournalistApplicationService
     implements CreateJournalistUseCase, GetJournalistUseCase, SearchJournalistsUseCase {
 
     private final JournalistRepository journalistRepository;
+    private final ApplicationValidator applicationValidator;
 
-    public JournalistApplicationService(JournalistRepository journalistRepository) {
+    public JournalistApplicationService(JournalistRepository journalistRepository,
+                                        ApplicationValidator applicationValidator) {
         this.journalistRepository = journalistRepository;
+        this.applicationValidator = applicationValidator;
     }
 
     @Override
     public Journalist create(CreateJournalistCommand command) {
+        applicationValidator.validate(command);
         Journalist journalist = new Journalist(
             null,
             command.firstName(),
