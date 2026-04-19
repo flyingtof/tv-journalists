@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import type { Journalist, Page } from '../types';
 import { JournalistList } from '../components/JournalistList';
 import { Autocomplete } from '../components/Autocomplete';
-import { fetchWithAuth } from '../api/apiClient';
+import { fetchWithAuth, UnauthorizedError } from '../api/apiClient';
 import '../styles/Search.css';
 
 export const JournalistSearchPage: React.FC = () => {
@@ -31,7 +31,9 @@ export const JournalistSearchPage: React.FC = () => {
         const data = await res.json();
         setMediaList(data.map((m: { name: string }) => m.name));
       } catch (error) {
-        console.error('Failed to fetch media list:', error);
+        if (!(error instanceof UnauthorizedError)) {
+          console.error('Failed to fetch media list:', error);
+        }
       }
     };
     fetchMedia();
@@ -41,7 +43,9 @@ export const JournalistSearchPage: React.FC = () => {
         const data = await res.json();
         setThemeList(data.map((t: { name: string }) => t.name));
       } catch (error) {
-        console.error('Failed to fetch themes list:', error);
+        if (!(error instanceof UnauthorizedError)) {
+          console.error('Failed to fetch themes list:', error);
+        }
       }
     };
     fetchThemes();
@@ -103,7 +107,7 @@ export const JournalistSearchPage: React.FC = () => {
         });
       }
     } catch (error) {
-      if ((error as Error).message !== 'Unauthorized') {
+      if (!(error instanceof UnauthorizedError)) {
         console.error('Failed to fetch journalists:', error);
       }
     }
