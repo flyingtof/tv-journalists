@@ -1,200 +1,256 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import type { Journalist, Page } from '../types';
 import { JournalistList } from '../components/JournalistList';
 import { Autocomplete } from '../components/Autocomplete';
 import { fetchWithAuth, UnauthorizedError } from '../api/apiClient';
 import '../styles/Search.css';
 
+interface SearchFilters {
+  name: string;
+  media: string[];
+  themes: string[];
+}
+
+interface SortState {
+  sortBy: string;
+  direction: 'asc' | 'desc';
+}
+
+interface NamedOption {
+  name: string;
+}
+
+interface SearchResponsePage {
+  totalPages: number;
+  number: number;
+  size: number;
+  totalElements: number;
+}
+
+interface SearchResponseWithPage {
+  content: Journalist[];
+  page: SearchResponsePage;
+}
+
+const DEFAULT_PAGE_SIZE = 10;
+const DEFAULT_SORT: SortState = { sortBy: 'lastName', direction: 'asc' };
+const DEBOUNCE_MS = 150;
+
+const areStringArraysEqual = (left: string[], right: string[]) =>
+  left.length === right.length && left.every((value, index) => value === right[index]);
+
+const areFiltersEqual = (left: SearchFilters, right: SearchFilters) =>
+  left.name === right.name &&
+  areStringArraysEqual(left.media, right.media) &&
+  areStringArraysEqual(left.themes, right.themes);
+
+const buildParams = (searchFilters: SearchFilters, page: number, pageSize: number, sort: SortState) => {
+  const params = new URLSearchParams();
+  if (searchFilters.name) {
+    params.append('name', searchFilters.name);
+  }
+  searchFilters.media.forEach((media) => params.append('media', media));
+  searchFilters.themes.forEach((theme) => params.append('themes', theme));
+  params.append('page', String(page));
+  params.append('size', String(pageSize));
+  params.append('sort', `${sort.sortBy},${sort.direction}`);
+  return params;
+};
+
+const normalizeJournalists = (data: Page<Journalist> | SearchResponseWithPage | Journalist[]): Page<Journalist> => {
+  if (Array.isArray(data)) {
+    return {
+      content: data,
+      totalPages: 1,
+      number: 0,
+      first: true,
+      last: true,
+      size: data.length,
+      totalElements: data.length,
+      numberOfElements: data.length,
+      empty: data.length === 0,
+    };
+  }
+
+  if ('page' in data) {
+    return {
+      content: data.content,
+      totalPages: data.page.totalPages,
+      number: data.page.number,
+      size: data.page.size,
+      totalElements: data.page.totalElements,
+      first: data.page.number === 0,
+      last: data.page.number >= data.page.totalPages - 1,
+      numberOfElements: data.content.length,
+      empty: data.content.length === 0,
+    };
+  }
+
+  return data;
+};
+
 export const JournalistSearchPage: React.FC = () => {
   const [journalists, setJournalists] = useState<Page<Journalist> | null>(null);
   const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-  const [sort, setSort] = useState({ sortBy: 'lastName', direction: 'asc' });
-  const [filters, setFilters] = useState({
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [sort, setSort] = useState<SortState>(DEFAULT_SORT);
+  const [filters, setFilters] = useState<SearchFilters>({
     name: '',
-    media: [] as string[],
-    themes: [] as string[],
+    media: [],
+    themes: [],
   });
   const [mediaList, setMediaList] = useState<string[]>([]);
   const [themeList, setThemeList] = useState<string[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
   const urlDebounceRef = useRef<number | null>(null);
-  const DEBOUNCE_MS = 150;
   const restoringRef = useRef(false);
+  const latestFiltersRef = useRef(filters);
+  const skipFirstRef = useRef(true);
 
   useEffect(() => {
-    const fetchMedia = async () => {
+    latestFiltersRef.current = filters;
+  }, [filters]);
+
+  const fetchSuggestions = useCallback(
+    async (path: string, setter: React.Dispatch<React.SetStateAction<string[]>>, errorMessage: string) => {
       try {
-        const res = await fetchWithAuth('/api/v1/media');
-        const data = await res.json();
-        setMediaList(data.map((m: { name: string }) => m.name));
+        const response = await fetchWithAuth(path);
+        const data = (await response.json()) as NamedOption[];
+        setter(data.map((item) => item.name));
       } catch (error) {
         if (!(error instanceof UnauthorizedError)) {
-          console.error('Failed to fetch media list:', error);
+          console.error(errorMessage, error);
         }
       }
-    };
-    fetchMedia();
-    const fetchThemes = async () => {
-      try {
-        const res = await fetchWithAuth('/api/v1/themes');
-        const data = await res.json();
-        setThemeList(data.map((t: { name: string }) => t.name));
-      } catch (error) {
-        if (!(error instanceof UnauthorizedError)) {
-          console.error('Failed to fetch themes list:', error);
-        }
-      }
-    };
-    fetchThemes();
-  }, []);
+    },
+    [],
+  );
 
-  // Build URLSearchParams from state or provided overrides
-  const buildParams = (searchFilters: any, p: number, ps: number, s: { sortBy: string; direction: string }) => {
-    const params = new URLSearchParams();
-    if (searchFilters.name) params.append('name', searchFilters.name);
-    if (searchFilters.media) {
-      if (Array.isArray(searchFilters.media)) {
-        searchFilters.media.forEach((m: string) => params.append('media', m));
-      } else {
-        params.append('media', String(searchFilters.media));
-      }
-    }
-    if (searchFilters.themes && Array.isArray(searchFilters.themes)) {
-      searchFilters.themes.forEach((t: string) => params.append('themes', t));
-    }
-    params.append('page', String(p));
-    params.append('size', String(ps));
-    params.append('sort', `${s.sortBy},${s.direction}`);
-    return params;
-  };
+  useEffect(() => {
+    void fetchSuggestions('/api/v1/media', setMediaList, 'Failed to fetch media list:');
+    void fetchSuggestions('/api/v1/themes', setThemeList, 'Failed to fetch themes list:');
+  }, [fetchSuggestions]);
 
-  const doSearch = async (searchFilters: any, p: number, ps: number, s: { sortBy: string; direction: string }) => {
-    const params = buildParams(searchFilters, p, ps, s);
+  const doSearch = useCallback(async (searchFilters: SearchFilters, nextPage: number, nextPageSize: number, nextSort: SortState) => {
+    const params = buildParams(searchFilters, nextPage, nextPageSize, nextSort);
+
     try {
-      const res = await fetchWithAuth(`/api/v1/journalists?${params.toString()}`);
-      const data = await res.json();
-
-      if (data.content && data.page) {
-        const pageData = data.page;
-        const content = data.content;
-        setJournalists({
-          content: content,
-          totalPages: pageData.totalPages,
-          number: pageData.number,
-          size: pageData.size,
-          totalElements: pageData.totalElements,
-          first: pageData.number === 0,
-          last: pageData.number >= pageData.totalPages - 1,
-          numberOfElements: content.length,
-          empty: content.length === 0,
-        });
-      } else if (data.content) {
-        setJournalists(data);
-      } else if (Array.isArray(data)) {
-        setJournalists({
-          content: data,
-          totalPages: 1,
-          number: 0,
-          first: true,
-          last: true,
-          size: data.length,
-          totalElements: data.length,
-          numberOfElements: data.length,
-          empty: data.length === 0,
-        });
-      }
+      const response = await fetchWithAuth(`/api/v1/journalists?${params.toString()}`);
+      const data = (await response.json()) as Page<Journalist> | SearchResponseWithPage | Journalist[];
+      setJournalists(normalizeJournalists(data));
     } catch (error) {
       if (!(error instanceof UnauthorizedError)) {
         console.error('Failed to fetch journalists:', error);
       }
     }
-  };
+  }, []);
 
-  const updateUrl = (searchFilters: any, p: number, ps: number, s: { sortBy: string; direction: string }, replace = true) => {
-    const params = buildParams(searchFilters, p, ps, s);
-    const search = params.toString();
-    const target = search ? `?${search}` : '';
-    // if we are currently restoring from location.search, avoid updating the URL
-    if (restoringRef.current) return;
-    // avoid scheduling if URL already matches
-    if (target === location.search) return;
+  const updateUrl = useCallback(
+    (searchFilters: SearchFilters, nextPage: number, nextPageSize: number, nextSort: SortState, replace = true) => {
+      const params = buildParams(searchFilters, nextPage, nextPageSize, nextSort);
+      const search = params.toString();
+      const target = search ? `?${search}` : '';
 
-    // debounce navigate calls to avoid rapid successive navigations
-    if (urlDebounceRef.current) {
-      window.clearTimeout(urlDebounceRef.current);
-    }
-    urlDebounceRef.current = window.setTimeout(() => {
-      // re-check to avoid navigating to the same URL in case it changed meanwhile
-      if (target === location.search) return;
-      navigate(target, { replace });
-      urlDebounceRef.current = null;
-    }, DEBOUNCE_MS) as unknown as number;
-  };
+      if (restoringRef.current || target === location.search) {
+        return;
+      }
 
-  // Public handleSearch used by the form submit and other handlers
-  const handleSearch = () => {
+      if (urlDebounceRef.current) {
+        window.clearTimeout(urlDebounceRef.current);
+      }
+
+      urlDebounceRef.current = window.setTimeout(() => {
+        if (target === location.search) {
+          return;
+        }
+
+        navigate(target, { replace });
+        urlDebounceRef.current = null;
+      }, DEBOUNCE_MS);
+    },
+    [location.search, navigate],
+  );
+
+  const updateFilters = useCallback(
+    (updater: (current: SearchFilters) => SearchFilters) => {
+      const current = latestFiltersRef.current;
+      const next = updater(current);
+      if (next === current) {
+        return;
+      }
+
+      latestFiltersRef.current = next;
+      setFilters(next);
+      setPage(0);
+      updateUrl(next, 0, pageSize, sort, false);
+    },
+    [pageSize, sort, updateUrl],
+  );
+
+  const handleSearch = useCallback(() => {
     setPage(0);
     updateUrl(filters, 0, pageSize, sort, false);
-    doSearch(filters, 0, pageSize, sort);
-  };
+    void doSearch(filters, 0, pageSize, sort);
+  }, [doSearch, filters, pageSize, sort, updateUrl]);
 
   const handleSort = (newSortBy: string) => {
-    setSort(currentSort => ({
+    setSort((currentSort) => ({
       sortBy: newSortBy,
-      direction: currentSort.sortBy === newSortBy && currentSort.direction === 'asc' ? 'desc' : 'asc'
+      direction: currentSort.sortBy === newSortBy && currentSort.direction === 'asc' ? 'desc' : 'asc',
     }));
   };
 
-  // Keep URL in sync when page/size/sort changes
-  const skipFirstRef = useRef(true);
   useEffect(() => {
-    // Skip the initial mount invocation to avoid overwriting query params restored from history
     if (skipFirstRef.current) {
       skipFirstRef.current = false;
       return;
     }
-    updateUrl(filters, page, pageSize, sort, true);
-  }, [page, pageSize, sort]);
 
-  // When location.search changes (back/forward or URL update), parse and run the search
+    updateUrl(latestFiltersRef.current, page, pageSize, sort, true);
+  }, [page, pageSize, sort, updateUrl]);
+
   useEffect(() => {
-    const run = async () => {
+    let isMounted = true;
+
+    const runSearchFromLocation = async () => {
       const params = new URLSearchParams(location.search.replace(/^\?/, ''));
       const name = params.get('name') || '';
-      const media = params.getAll('media') || [];
-      const themes = params.getAll('themes') || [];
-      const p = Number(params.get('page') ?? 0);
-      const ps = Number(params.get('size') ?? pageSize);
-      const sortParam = params.get('sort') || `${sort.sortBy},${sort.direction}`;
+      const media = params.getAll('media');
+      const themes = params.getAll('themes');
+      const nextPage = Number(params.get('page') ?? 0);
+      const nextPageSize = Number(params.get('size') ?? DEFAULT_PAGE_SIZE);
+      const sortParam = params.get('sort') || `${DEFAULT_SORT.sortBy},${DEFAULT_SORT.direction}`;
       const [sortBy, direction] = sortParam.split(',');
+      const nextSort: SortState = {
+        sortBy: sortBy || DEFAULT_SORT.sortBy,
+        direction: direction === 'desc' ? 'desc' : 'asc',
+      };
+      const nextFilters: SearchFilters = { name, media, themes };
 
-      // mark that we are restoring state so updateUrl is a no-op while we apply it
       restoringRef.current = true;
 
-      // Update state only if different to avoid loops
-      setFilters(prev => {
-        const prevThemes = Array.isArray(prev.themes) ? prev.themes : [];
-        const prevMedia = Array.isArray(prev.media) ? prev.media : [];
-        if (prev.name === name && JSON.stringify(prevMedia) === JSON.stringify(media) && JSON.stringify(prevThemes) === JSON.stringify(themes)) return prev;
-        return { ...prev, name, media, themes };
-      });
-      setPage(prev => (prev === p ? prev : p));
-      setPageSize(prev => (prev === ps ? prev : ps));
-      setSort(prev => (prev.sortBy === (sortBy || 'lastName') && prev.direction === (direction || 'asc') ? prev : { sortBy: sortBy || 'lastName', direction: direction || 'asc' }));
+      if (isMounted) {
+        setFilters((current) => (areFiltersEqual(current, nextFilters) ? current : nextFilters));
+        setPage((current) => (current === nextPage ? current : nextPage));
+        setPageSize((current) => (current === nextPageSize ? current : nextPageSize));
+        setSort((current) =>
+          current.sortBy === nextSort.sortBy && current.direction === nextSort.direction ? current : nextSort,
+        );
+      }
 
-      await doSearch({ name, media, themes }, p, ps, { sortBy: sortBy || 'lastName', direction: direction || 'asc' });
-
-      // allow updates to URL again
+      await doSearch(nextFilters, nextPage, nextPageSize, nextSort);
       restoringRef.current = false;
     };
 
-    run();
-  }, [location.search]);
+    void runSearchFromLocation();
 
-  // cleanup debounce timer on unmount
+    return () => {
+      isMounted = false;
+    };
+  }, [doSearch, location.search]);
+
   useEffect(() => {
     return () => {
       if (urlDebounceRef.current) {
@@ -204,52 +260,58 @@ export const JournalistSearchPage: React.FC = () => {
     };
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    // If changing themes input directly (typing), keep it for Autocomplete internal input value only.
-    if (name === 'themes') {
-      // We don't set filters.themes from raw input here; Autocomplete will call onSelect to add tags.
-      return;
-    }
-    const newFilters = { ...filters, [name]: value };
-    setFilters(newFilters);
-    setPage(0);
-    updateUrl(newFilters, 0, pageSize, sort, false);
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    updateFilters((current) => ({ ...current, name: event.target.value }));
   };
 
-  // media selection handled inline where Autocomplete onSelect used
-
   const addTheme = (theme: string) => {
-    if (!theme) return;
-    setFilters(prev => {
-      if (prev.themes.includes(theme)) return prev;
-      const next = { ...prev, themes: [...prev.themes, theme] };
-      setPage(0);
-      updateUrl(next, 0, pageSize, sort, false);
-      return next;
-    });
+    if (!theme) {
+      return;
+    }
+
+    updateFilters((current) =>
+      current.themes.includes(theme)
+        ? current
+        : { ...current, themes: [...current.themes, theme] },
+    );
   };
 
   const removeTheme = (theme: string) => {
-    setFilters(prev => {
-      const nextThemes = prev.themes.filter(t => t !== theme);
-      const next = { ...prev, themes: nextThemes };
-      setPage(0);
-      updateUrl(next, 0, pageSize, sort, false);
-      return next;
-    });
+    updateFilters((current) => ({
+      ...current,
+      themes: current.themes.filter((existingTheme) => existingTheme !== theme),
+    }));
   };
 
-  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setPageSize(Number(e.target.value));
+  const addMedia = (media: string) => {
+    if (!media) {
+      return;
+    }
+
+    updateFilters((current) =>
+      current.media.includes(media)
+        ? current
+        : { ...current, media: [...current.media, media] },
+    );
+  };
+
+  const removeMedia = (media: string) => {
+    updateFilters((current) => ({
+      ...current,
+      media: current.media.filter((existingMedia) => existingMedia !== media),
+    }));
+  };
+
+  const handlePageSizeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setPageSize(Number(event.target.value));
     setPage(0);
   };
 
   return (
     <div className="search-container">
       <h1 className="search-title">Recherche de journalistes</h1>
-      
-      <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="search-form">
+
+      <form onSubmit={(event) => { event.preventDefault(); handleSearch(); }} className="search-form">
         <div className="search-grid">
           <div className="search-field">
             <label htmlFor="name" className="field-label">Nom</label>
@@ -269,34 +331,17 @@ export const JournalistSearchPage: React.FC = () => {
               <div style={{ width: '100%' }}>
                 <Autocomplete
                   suggestions={mediaList}
-                  value={''}
-                  onChange={() => { /* internal only */ }}
-                  onSelect={(selected) => {
-                    // add media if not present
-                    setFilters(prev => {
-                      if (prev.media.includes(selected)) return prev;
-                      const next = { ...prev, media: [...prev.media, selected] };
-                      setPage(0);
-                      updateUrl(next, 0, pageSize, sort, false);
-                      return next;
-                    });
-                  }}
+                  onSelect={addMedia}
                   name="media"
                   id="media"
                   placeholder="ex: Le Monde"
                 />
               </div>
               <div className="tags-container">
-                {filters.media.map(m => (
-                  <div key={m} className="tag">
-                    <span>{m}</span>
-                    <button onClick={() => {
-                      // remove this media
-                      const next = { ...filters, media: filters.media.filter(x => x !== m) };
-                      setFilters(next);
-                      setPage(0);
-                      updateUrl(next, 0, pageSize, sort, false);
-                    }} className="tag-remove" aria-label={`Remove media`}>&times;</button>
+                {filters.media.map((media) => (
+                  <div key={media} className="tag">
+                    <span>{media}</span>
+                    <button type="button" onClick={() => removeMedia(media)} className="tag-remove" aria-label="Remove media">&times;</button>
                   </div>
                 ))}
               </div>
@@ -308,21 +353,17 @@ export const JournalistSearchPage: React.FC = () => {
               <div style={{ width: '100%' }}>
                 <Autocomplete
                   suggestions={themeList}
-                  value={''}
-                  onChange={() => { /* internal only */ }}
-                  onSelect={(selected) => {
-                    addTheme(selected);
-                  }}
+                  onSelect={addTheme}
                   name="themes"
                   id="themes"
                   placeholder="Ajouter un thème..."
                 />
               </div>
               <div className="tags-container">
-                {filters.themes.map((t) => (
-                  <div key={t} className="tag">
-                    <span>{t}</span>
-                    <button onClick={() => removeTheme(t)} className="tag-remove" aria-label={`Remove ${t}`}>&times;</button>
+                {filters.themes.map((theme) => (
+                  <div key={theme} className="tag">
+                    <span>{theme}</span>
+                    <button type="button" onClick={() => removeTheme(theme)} className="tag-remove" aria-label={`Remove ${theme}`}>&times;</button>
                   </div>
                 ))}
               </div>
@@ -337,8 +378,8 @@ export const JournalistSearchPage: React.FC = () => {
       {journalists && (
         <div className="pagination-sticky">
           <div className="pagination-controls">
-            <button 
-              onClick={() => setPage(p => p - 1)} 
+            <button
+              onClick={() => setPage((currentPage) => currentPage - 1)}
               disabled={journalists.first}
               className="pagination-button"
             >
@@ -348,15 +389,15 @@ export const JournalistSearchPage: React.FC = () => {
               {(() => {
                 const total = journalists.totalElements ?? 0;
                 const size = journalists.size ?? 0;
-                const pageNum = journalists.number ?? 0; // zero-based
-                if (total === 0) return `0-0 sur 0`;
+                const pageNum = journalists.number ?? 0;
+                if (total === 0) return '0-0 sur 0';
                 const start = pageNum * size + 1;
                 const end = Math.min((pageNum + 1) * size, total);
                 return `${start}-${end} sur ${total}`;
               })()}
             </span>
-            <button 
-              onClick={() => setPage(p => p + 1)} 
+            <button
+              onClick={() => setPage((currentPage) => currentPage + 1)}
               disabled={journalists.last}
               className="pagination-button"
             >
@@ -372,8 +413,8 @@ export const JournalistSearchPage: React.FC = () => {
         </div>
       )}
 
-      <JournalistList 
-        journalists={journalists ? journalists.content : []} 
+      <JournalistList
+        journalists={journalists ? journalists.content : []}
         onSort={handleSort}
         sort={sort}
       />
