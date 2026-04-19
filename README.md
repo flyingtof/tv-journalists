@@ -34,6 +34,16 @@ Start the PostgreSQL database:
 docker-compose up -d
 ```
 
+> [!IMPORTANT]
+> If you already ran this `feat/multi-user-management` branch before the bootstrap-admin seed was added to Flyway V3, recreate the local Postgres volume before restarting:
+> `docker-compose down -v && docker-compose up -d`
+
+**Default Bootstrap Administrator Credentials** (fresh local database):
+- **Username:** `admin`
+- **Password:** `admin123!`
+
+These credentials are seeded by Flyway migration V3 for local development. The bootstrap administrator has both `ADMIN` and `USER` roles and is enabled by default.
+
 ### Backend
 ```bash
 cd backend
