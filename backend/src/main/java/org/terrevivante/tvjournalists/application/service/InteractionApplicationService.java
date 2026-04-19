@@ -4,6 +4,7 @@ import org.terrevivante.tvjournalists.application.command.LogInteractionCommand;
 import org.terrevivante.tvjournalists.application.exception.ActivityNotFoundException;
 import org.terrevivante.tvjournalists.application.exception.ActivityNotOwnedByJournalistException;
 import org.terrevivante.tvjournalists.application.exception.JournalistNotFoundException;
+import org.terrevivante.tvjournalists.application.validation.ApplicationValidator;
 import org.terrevivante.tvjournalists.application.usecase.LogInteractionUseCase;
 import org.terrevivante.tvjournalists.domain.model.InteractionLog;
 import org.terrevivante.tvjournalists.domain.port.ActivityRepository;
@@ -17,17 +18,21 @@ public class InteractionApplicationService implements LogInteractionUseCase {
     private final InteractionLogRepository interactionLogRepository;
     private final JournalistRepository journalistRepository;
     private final ActivityRepository activityRepository;
+    private final ApplicationValidator applicationValidator;
 
     public InteractionApplicationService(InteractionLogRepository interactionLogRepository,
                                          JournalistRepository journalistRepository,
-                                         ActivityRepository activityRepository) {
+                                         ActivityRepository activityRepository,
+                                         ApplicationValidator applicationValidator) {
         this.interactionLogRepository = interactionLogRepository;
         this.journalistRepository = journalistRepository;
         this.activityRepository = activityRepository;
+        this.applicationValidator = applicationValidator;
     }
 
     @Override
     public InteractionLog log(LogInteractionCommand command) {
+        applicationValidator.validate(command);
         journalistRepository.findById(command.journalistId())
             .orElseThrow(() -> new JournalistNotFoundException(command.journalistId()));
 

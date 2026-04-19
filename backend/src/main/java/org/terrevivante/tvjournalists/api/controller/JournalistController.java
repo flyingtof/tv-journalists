@@ -1,7 +1,6 @@
 package org.terrevivante.tvjournalists.api.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -46,7 +45,7 @@ public class JournalistController {
     }
 
     @PostMapping
-    public ResponseEntity<JournalistDTO> createJournalist(@Valid @RequestBody JournalistCreateDTO journalistCreateDTO) {
+    public ResponseEntity<JournalistDTO> createJournalist(@RequestBody JournalistCreateDTO journalistCreateDTO) {
         Journalist savedJournalist = createJournalistUseCase.create(journalistMapper.toCommand(journalistCreateDTO));
         return ResponseEntity.status(HttpStatus.CREATED).body(journalistMapper.toDto(savedJournalist));
     }
@@ -111,7 +110,7 @@ public class JournalistController {
     @PostMapping("/{id}/interactions")
     public ResponseEntity<InteractionDTO> logInteraction(
             @PathVariable UUID id,
-            @Valid @RequestBody InteractionCreateDTO interactionCreateDTO) {
+            @RequestBody InteractionCreateDTO interactionCreateDTO) {
         InteractionLog savedLog = logInteractionUseCase.log(journalistMapper.toCommand(id, interactionCreateDTO));
         return ResponseEntity.status(HttpStatus.CREATED).body(journalistMapper.toDto(savedLog));
     }

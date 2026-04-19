@@ -1,8 +1,11 @@
 package org.terrevivante.tvjournalists.application.service;
 
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validation;
 import org.junit.jupiter.api.Test;
 import org.terrevivante.tvjournalists.application.command.CreateJournalistCommand;
 import org.terrevivante.tvjournalists.application.exception.JournalistNotFoundException;
+import org.terrevivante.tvjournalists.application.validation.ApplicationValidator;
 import org.terrevivante.tvjournalists.domain.model.Journalist;
 import org.terrevivante.tvjournalists.domain.port.JournalistRepository;
 import org.terrevivante.tvjournalists.domain.query.JournalistSearchCriteria;
@@ -21,8 +24,10 @@ import static org.mockito.Mockito.*;
 class JournalistApplicationServiceTest {
 
     private final JournalistRepository journalistRepository = mock(JournalistRepository.class);
+    private final ApplicationValidator applicationValidator =
+        new ApplicationValidator(Validation.buildDefaultValidatorFactory().getValidator());
     private final JournalistApplicationService service =
-        new JournalistApplicationService(journalistRepository);
+        new JournalistApplicationService(journalistRepository, applicationValidator);
 
     @Test
     void shouldSearchUsingCoreCriteriaAndCustomPageTypes() {
@@ -60,6 +65,18 @@ class JournalistApplicationServiceTest {
 
         assertThat(result.firstName()).isEqualTo("Bob");
         assertThat(result.lastName()).isEqualTo("Brown");
+    }
+
+    @Test
+    void shouldRejectInvalidCreateCommandBeforeRepositoryInteraction() {
+        CreateJournalistCommand command = new CreateJournalistCommand("  ", "Brown", null, null);
+
+        assertThatThrownBy(() -> service.create(command))
+            .isInstanceOf(ConstraintViolationException.class)
+            .satisfies(exception -> assertThat(((ConstraintViolationException) exception).getConstraintViolations())
+                .extracting(violation -> violation.getPropertyPath().toString())
+                .containsExactly("firstName"));
+        verifyNoInteractions(journalistRepository);
     }
 
     @Test

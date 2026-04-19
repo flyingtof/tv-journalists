@@ -1,10 +1,13 @@
 package org.terrevivante.tvjournalists.application.service;
 
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validation;
 import org.junit.jupiter.api.Test;
 import org.terrevivante.tvjournalists.application.command.LogInteractionCommand;
 import org.terrevivante.tvjournalists.application.exception.ActivityNotFoundException;
 import org.terrevivante.tvjournalists.application.exception.ActivityNotOwnedByJournalistException;
 import org.terrevivante.tvjournalists.application.exception.JournalistNotFoundException;
+import org.terrevivante.tvjournalists.application.validation.ApplicationValidator;
 import org.terrevivante.tvjournalists.domain.model.Activity;
 import org.terrevivante.tvjournalists.domain.model.InteractionLog;
 import org.terrevivante.tvjournalists.domain.model.Journalist;
@@ -30,8 +33,15 @@ class InteractionApplicationServiceTest {
     private final InteractionLogRepository interactionLogRepository = mock(InteractionLogRepository.class);
     private final JournalistRepository journalistRepository = mock(JournalistRepository.class);
     private final ActivityRepository activityRepository = mock(ActivityRepository.class);
+    private final ApplicationValidator applicationValidator =
+        new ApplicationValidator(Validation.buildDefaultValidatorFactory().getValidator());
     private final InteractionApplicationService service =
-        new InteractionApplicationService(interactionLogRepository, journalistRepository, activityRepository);
+        new InteractionApplicationService(
+            interactionLogRepository,
+            journalistRepository,
+            activityRepository,
+            applicationValidator
+        );
 
     @Test
     void shouldLogInteractionForExistingJournalist() {
@@ -50,6 +60,19 @@ class InteractionApplicationServiceTest {
 
         assertThat(result.journalistId()).isEqualTo(journalistId);
         assertThat(result.description()).isEqualTo("Press conference attended");
+    }
+
+    @Test
+    void shouldRejectInvalidCommandBeforeRepositoryInteraction() {
+        LogInteractionCommand command = new LogInteractionCommand(
+            UUID.randomUUID(), null, LocalDate.now().plusDays(1), "Press conference attended", null);
+
+        assertThatThrownBy(() -> service.log(command))
+            .isInstanceOf(ConstraintViolationException.class)
+            .satisfies(exception -> assertThat(((ConstraintViolationException) exception).getConstraintViolations())
+                .extracting(violation -> violation.getPropertyPath().toString())
+                .containsExactly("date"));
+        verifyNoInteractions(interactionLogRepository, journalistRepository, activityRepository);
     }
 
     @Test

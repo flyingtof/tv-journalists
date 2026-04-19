@@ -13,8 +13,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import jakarta.persistence.EntityManager;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -22,6 +20,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 public class InteractionControllerIT extends AbstractIntegrationTest {
+
+    private static final String STABLE_PAST_DATE = "2000-03-29";
 
     @Autowired
     private MockMvc mockMvc;
@@ -52,11 +52,11 @@ public class InteractionControllerIT extends AbstractIntegrationTest {
 
         String body = """
             {
-                "date": "2026-03-29",
+                "date": "%s",
                 "description": "Conference",
                 "activityId": "%s"
             }
-            """.formatted(activity.getId());
+            """.formatted(STABLE_PAST_DATE, activity.getId());
 
         mockMvc.perform(post("/api/v1/journalists/" + other.getId() + "/interactions")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -73,15 +73,19 @@ public class InteractionControllerIT extends AbstractIntegrationTest {
 
         String body = """
             {
-                "date": "2026-03-29",
+                "date": "%s",
                 "description": ""
             }
-            """;
+            """.formatted(STABLE_PAST_DATE);
 
         mockMvc.perform(post("/api/v1/journalists/" + journalist.getId() + "/interactions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Validation failed"))
+            .andExpect(jsonPath("$.errors.length()").value(1))
+            .andExpect(jsonPath("$.errors[0].field").value("description"))
+            .andExpect(jsonPath("$.errors[0].message").value("must not be blank"));
     }
 
     @Test
@@ -93,15 +97,19 @@ public class InteractionControllerIT extends AbstractIntegrationTest {
 
         String body = """
             {
-                "date": "2026-03-29",
+                "date": "%s",
                 "description": "   "
             }
-            """;
+            """.formatted(STABLE_PAST_DATE);
 
         mockMvc.perform(post("/api/v1/journalists/" + journalist.getId() + "/interactions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Validation failed"))
+            .andExpect(jsonPath("$.errors.length()").value(1))
+            .andExpect(jsonPath("$.errors[0].field").value("description"))
+            .andExpect(jsonPath("$.errors[0].message").value("must not be blank"));
     }
 
     @Test
@@ -121,7 +129,35 @@ public class InteractionControllerIT extends AbstractIntegrationTest {
         mockMvc.perform(post("/api/v1/journalists/" + journalist.getId() + "/interactions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Validation failed"))
+            .andExpect(jsonPath("$.errors.length()").value(1))
+            .andExpect(jsonPath("$.errors[0].field").value("date"))
+            .andExpect(jsonPath("$.errors[0].message").value("must be a date in the past or in the present"));
+    }
+
+    @Test
+    @WithMockUser
+    void shouldReturnValidationErrorsSortedByFieldName() throws Exception {
+        JournalistEntity journalist = new JournalistEntity("John", "Doe");
+        entityManager.persist(journalist);
+        entityManager.flush();
+
+        String body = """
+            {
+                "date": "2099-01-01",
+                "description": ""
+            }
+            """;
+
+        mockMvc.perform(post("/api/v1/journalists/" + journalist.getId() + "/interactions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Validation failed"))
+            .andExpect(jsonPath("$.errors.length()").value(2))
+            .andExpect(jsonPath("$.errors[0].field").value("date"))
+            .andExpect(jsonPath("$.errors[1].field").value("description"));
     }
 
     @Test
@@ -133,17 +169,17 @@ public class InteractionControllerIT extends AbstractIntegrationTest {
 
         String interactionJson = """
             {
-                "date": "2026-03-29",
+                "date": "%s",
                 "description": "Met at conference"
             }
-            """;
+            """.formatted(STABLE_PAST_DATE);
 
         mockMvc.perform(post("/api/v1/journalists/" + journalist.getId() + "/interactions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(interactionJson))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.id").isNotEmpty())
-            .andExpect(jsonPath("$.date").value("2026-03-29"))
+            .andExpect(jsonPath("$.date").value(STABLE_PAST_DATE))
             .andExpect(jsonPath("$.description").value("Met at conference"))
             .andExpect(jsonPath("$.activityId").value((Object) null));
     }
