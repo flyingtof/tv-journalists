@@ -37,13 +37,49 @@ export const UserAdminPage = () => {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
 
+  const fetchUsers = useCallback(async () => {
+    const response = await fetchWithAuth('/api/v1/users');
+    return (await response.json()) as UserSummary[];
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const bootstrapUsers = async () => {
+      try {
+        const data = await fetchUsers();
+        if (isMounted) {
+          setUsers(data);
+        }
+      } catch (error) {
+        if (error instanceof UnauthorizedError) {
+          return;
+        }
+
+        console.error('Failed to load users:', error);
+        if (isMounted) {
+          setLoadError('Impossible de charger les utilisateurs.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void bootstrapUsers();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchUsers]);
+
   const loadUsers = useCallback(async () => {
     setIsLoading(true);
     setLoadError(null);
 
     try {
-      const response = await fetchWithAuth('/api/v1/users');
-      const data = (await response.json()) as UserSummary[];
+      const data = await fetchUsers();
       setUsers(data);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
@@ -55,11 +91,7 @@ export const UserAdminPage = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    void loadUsers();
-  }, [loadUsers]);
+  }, [fetchUsers]);
 
   const sortedUsers = useMemo(
     () => [...users].sort((left, right) => left.username.localeCompare(right.username)),

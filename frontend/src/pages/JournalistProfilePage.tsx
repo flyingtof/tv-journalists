@@ -4,6 +4,19 @@ import type { Journalist } from '../types';
 import { fetchWithAuth, UnauthorizedError } from '../api/apiClient';
 import '../styles/Profile.css';
 
+interface SearchLocationState {
+  fromSearch?: string;
+}
+
+const isSearchLocationState = (state: unknown): state is SearchLocationState => {
+  if (typeof state !== 'object' || state === null) {
+    return false;
+  }
+
+  const { fromSearch } = state as { fromSearch?: unknown };
+  return fromSearch === undefined || typeof fromSearch === 'string';
+};
+
 export const JournalistProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [journalist, setJournalist] = useState<Journalist | null>(null);
@@ -99,8 +112,7 @@ const BackButton: React.FC = () => {
 
   const handleBack = (e: React.MouseEvent) => {
     e.preventDefault();
-    const state = (location && (location as any).state) || {};
-    const fromSearch = state.fromSearch;
+    const fromSearch = isSearchLocationState(location.state) ? location.state.fromSearch : undefined;
     if (fromSearch) {
       const target = fromSearch ? `/?${fromSearch.replace(/^\?/, '')}` : '/';
       navigate(target, { replace: false });
