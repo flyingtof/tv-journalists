@@ -57,6 +57,17 @@ npm install
 npm run dev
 ```
 
+### Git Hooks
+Install the repo-managed hooks after cloning:
+```bash
+./scripts/install-git-hooks.sh
+```
+
+This sets `core.hooksPath` to `.githooks`, which enables the versioned pre-commit hook.
+The pre-commit hook runs:
+- `mvn -q -pl backend checkstyle:check`
+- `npm --prefix frontend run lint`
+
 ## Features
 - **Profile Management**: CRUD for journalists and influencers.
 - **Media Activities**: Link profiles to specific media outlets with roles and themes.
