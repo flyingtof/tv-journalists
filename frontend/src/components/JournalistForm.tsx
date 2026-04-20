@@ -34,6 +34,7 @@ export const JournalistForm: React.FC<Props> = ({ onSubmit, initialData }) => {
           id="firstName"
           type="text"
           name="firstName"
+          autoComplete="given-name"
           value={formData.firstName}
           onChange={handleChange}
           required
@@ -46,6 +47,7 @@ export const JournalistForm: React.FC<Props> = ({ onSubmit, initialData }) => {
           id="lastName"
           type="text"
           name="lastName"
+          autoComplete="family-name"
           value={formData.lastName}
           onChange={handleChange}
           required
@@ -58,6 +60,7 @@ export const JournalistForm: React.FC<Props> = ({ onSubmit, initialData }) => {
           id="globalEmail"
           type="email"
           name="globalEmail"
+          autoComplete="email"
           value={formData.globalEmail}
           onChange={handleChange}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
@@ -69,6 +72,7 @@ export const JournalistForm: React.FC<Props> = ({ onSubmit, initialData }) => {
           id="globalPhone"
           type="text"
           name="globalPhone"
+          autoComplete="tel"
           value={formData.globalPhone}
           onChange={handleChange}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"

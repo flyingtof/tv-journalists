@@ -57,6 +57,21 @@ describe('UserAdminPage', () => {
     expect(fetchMock).toHaveBeenCalledWith('/api/v1/users', expect.objectContaining({ credentials: 'include' }));
   });
 
+  it('declares explicit autocomplete metadata on the create-user form', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse([]));
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<UserAdminPage />);
+
+    await screen.findByRole('heading', { name: 'Créer un utilisateur' });
+
+    expect(screen.getByLabelText('Nom d’utilisateur')).toHaveAttribute('autocomplete', 'username');
+    expect(screen.getByLabelText('Mot de passe initial')).toHaveAttribute('autocomplete', 'new-password');
+    expect(screen.getByLabelText('Prénom')).toHaveAttribute('autocomplete', 'given-name');
+    expect(screen.getByLabelText('Nom')).toHaveAttribute('autocomplete', 'family-name');
+  });
+
   it('submits a create request with the entered values and refreshes the list', async () => {
     const initialUsers: UserSummary[] = [
       {

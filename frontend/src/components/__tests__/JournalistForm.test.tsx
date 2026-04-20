@@ -12,6 +12,15 @@ describe('JournalistForm', () => {
     expect(screen.getByLabelText(/Phone/i)).toBeInTheDocument();
   });
 
+  it('declares autocomplete metadata on personal contact fields', () => {
+    render(<JournalistForm onSubmit={vi.fn()} />);
+
+    expect(screen.getByLabelText(/First Name/i)).toHaveAttribute('autocomplete', 'given-name');
+    expect(screen.getByLabelText(/Last Name/i)).toHaveAttribute('autocomplete', 'family-name');
+    expect(screen.getByLabelText(/Email/i)).toHaveAttribute('autocomplete', 'email');
+    expect(screen.getByLabelText(/Phone/i)).toHaveAttribute('autocomplete', 'tel');
+  });
+
   it('calls onSubmit with form data', () => {
     const handleSubmit = vi.fn();
     render(<JournalistForm onSubmit={handleSubmit} />);
