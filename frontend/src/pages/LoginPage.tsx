@@ -36,6 +36,7 @@ export const LoginPage: React.FC = () => {
               type="text"
               id="username"
               name="username"
+              autoComplete="username"
               required
               className="form-input"
               placeholder="votre utilisateur"
@@ -50,6 +51,7 @@ export const LoginPage: React.FC = () => {
               type="password"
               id="password"
               name="password"
+              autoComplete="current-password"
               required
               className="form-input"
               placeholder="••••••••"

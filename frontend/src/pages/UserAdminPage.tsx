@@ -181,7 +181,7 @@ export const UserAdminPage = () => {
                 value={formState.username}
                 onChange={handleInputChange}
                 required
-                autoComplete="off"
+                autoComplete="username"
               />
             </label>
 
@@ -193,6 +193,7 @@ export const UserAdminPage = () => {
                 value={formState.password}
                 onChange={handleInputChange}
                 required
+                autoComplete="new-password"
               />
             </label>
 
@@ -202,6 +203,7 @@ export const UserAdminPage = () => {
                 <input
                   type="text"
                   name="firstName"
+                  autoComplete="given-name"
                   value={formState.firstName}
                   onChange={handleInputChange}
                   required
@@ -213,6 +215,7 @@ export const UserAdminPage = () => {
                 <input
                   type="text"
                   name="lastName"
+                  autoComplete="family-name"
                   value={formState.lastName}
                   onChange={handleInputChange}
                   required
