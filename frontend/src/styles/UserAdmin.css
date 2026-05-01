@@ -36,6 +36,13 @@
   line-height: 1.5;
 }
 
+.user-admin-section-header-with-action {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 .user-admin-form {
   display: flex;
   flex-direction: column;
@@ -179,6 +186,63 @@
   font-size: 14px;
 }
 
+.user-admin-table-actions {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.user-admin-action-button {
+  border: 1px solid #c7d2fe;
+  border-radius: 10px;
+  background: #eef2ff;
+  color: #4338ca;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 12px;
+}
+
+.user-admin-action-button:hover {
+  background: #e0e7ff;
+}
+
+.user-admin-close-button {
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #374151;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 12px;
+}
+
+.user-admin-close-button:hover {
+  background: #f9fafb;
+}
+
+.user-admin-edit-panel {
+  margin-top: 24px;
+}
+
+.user-admin-reset-form {
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+  padding-top: 24px;
+}
+
+.user-admin-reset-title {
+  margin: 0;
+  color: #111827;
+  font-size: 16px;
+  font-weight: 700;
+}
+
 .user-admin-status {
   display: inline-flex;
   border-radius: 9999px;
@@ -214,5 +278,9 @@
 
   .user-admin-form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .user-admin-section-header-with-action {
+    flex-direction: column;
   }
 }
