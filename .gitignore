@@ -38,3 +38,7 @@ build/
 .DS_Store
 
 .worktrees/
+
+.copilot/*
+!.copilot/mcp-config.json
+
