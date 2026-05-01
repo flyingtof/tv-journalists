@@ -168,6 +168,16 @@ export const UserAdminPage = () => {
         if (typeof editPanelRef.current?.scrollIntoView === 'function') {
           editPanelRef.current.scrollIntoView({ block: 'start', behavior: 'smooth' });
         }
+
+        const activeElement = document.activeElement;
+        if (
+          activeElement instanceof HTMLElement
+          && activeElement !== document.body
+          && editPanelRef.current?.contains(activeElement)
+        ) {
+          return;
+        }
+
         firstEditFieldRef.current?.focus();
       };
 

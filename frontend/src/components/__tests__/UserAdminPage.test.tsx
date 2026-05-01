@@ -220,6 +220,47 @@ describe('UserAdminPage', () => {
     });
   });
 
+  it('keeps user focus on the reset-password field when the deferred autofocus runs', async () => {
+    const existingUsers: UserSummary[] = [
+      {
+        id: '1',
+        username: 'admin',
+        firstName: 'Alice',
+        lastName: 'Admin',
+        enabled: true,
+        roles: ['ADMIN', 'USER'],
+      },
+    ];
+
+    const scheduledCallbacks: FrameRequestCallback[] = [];
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(existingUsers)));
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) => {
+      scheduledCallbacks.push(callback);
+      return scheduledCallbacks.length;
+    });
+
+    render(<UserAdminPage />);
+
+    await screen.findByRole('cell', { name: 'admin' });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Modifier admin' }));
+
+    const panel = await screen.findByRole('region', { name: "Modifier l’utilisateur" });
+    const panelWithin = within(panel);
+    const resetPasswordInput = panelWithin.getByLabelText('Nouveau mot de passe');
+
+    expect(scheduledCallbacks).toHaveLength(1);
+
+    await user.click(resetPasswordInput);
+    expect(resetPasswordInput).toHaveFocus();
+
+    scheduledCallbacks[0](0);
+
+    expect(resetPasswordInput).toHaveFocus();
+  });
+
   it('requires at least 8 characters for a password reset', async () => {
     const existingUsers: UserSummary[] = [
       {
