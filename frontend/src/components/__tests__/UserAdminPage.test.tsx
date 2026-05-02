@@ -153,6 +153,71 @@ describe('UserAdminPage', () => {
     expect(screen.getAllByRole('cell', { name: 'ADMIN, USER' })).toHaveLength(2);
   });
 
+  it('submits a create request with the theme manager role when selected', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse([]))
+      .mockResolvedValueOnce(
+        jsonResponse(
+          {
+            id: '2',
+            username: 'theme-manager',
+            firstName: 'Thalia',
+            lastName: 'Theme',
+            enabled: true,
+            roles: ['USER', 'THEME_MANAGER'],
+          },
+          201,
+        ),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse([
+          {
+            id: '2',
+            username: 'theme-manager',
+            firstName: 'Thalia',
+            lastName: 'Theme',
+            enabled: true,
+            roles: ['USER', 'THEME_MANAGER'],
+          },
+        ]),
+      );
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<UserAdminPage />);
+
+    await screen.findByRole('heading', { name: 'Créer un utilisateur' });
+
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText('Nom d’utilisateur'), 'theme-manager');
+    await user.type(screen.getByLabelText('Mot de passe initial'), 'theme1234!');
+    await user.type(screen.getByLabelText('Prénom'), 'Thalia');
+    await user.type(screen.getByLabelText('Nom'), 'Theme');
+    await user.click(screen.getByLabelText('Gestionnaire des thèmes'));
+    await user.click(screen.getByRole('button', { name: 'Créer l’utilisateur' }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenNthCalledWith(
+        2,
+        '/api/v1/users',
+        expect.objectContaining({
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: 'theme-manager',
+            password: 'theme1234!',
+            firstName: 'Thalia',
+            lastName: 'Theme',
+            roles: ['USER', 'THEME_MANAGER'],
+            enabled: true,
+          }),
+        }),
+      );
+    });
+  });
+
   it('opens an edit panel for the selected user', async () => {
     const existingUsers: UserSummary[] = [
       {

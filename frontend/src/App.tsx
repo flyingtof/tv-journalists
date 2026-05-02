@@ -4,10 +4,25 @@ import { JournalistSearchPage } from './pages/JournalistSearchPage';
 import { JournalistProfilePage } from './pages/JournalistProfilePage';
 import { UserGuidePage } from './pages/UserGuidePage';
 import { UserAdminPage } from './pages/UserAdminPage';
+import { ThemeAdminPage } from './pages/ThemeAdminPage';
 import { LoginPage } from './pages/LoginPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
+import type { UserRole } from './types';
 import './styles/Layout.css';
+
+const THEME_ADMIN_ROLES: UserRole[] = ['ADMIN', 'THEME_MANAGER'];
+
+const getRoleLabel = (role: UserRole) => {
+  switch (role) {
+    case 'ADMIN':
+      return 'Administrateur';
+    case 'THEME_MANAGER':
+      return 'Gestionnaire des thèmes';
+    default:
+      return 'Utilisateur';
+  }
+};
 
 // Restores the page the user was on before being redirected to /login
 const AuthRedirect: React.FC = () => {
@@ -30,10 +45,11 @@ function Navigation() {
   const location = useLocation();
   const isLoginPage = location.pathname === '/login';
   const { currentUser, isAuthenticated, isLoading } = useAuth();
+  const canManageThemes = currentUser?.roles.some((role) => THEME_ADMIN_ROLES.includes(role)) ?? false;
 
   const roleLabels = currentUser?.roles.map((role) => ({
     code: role,
-    label: role === 'ADMIN' ? 'Administrateur' : 'Utilisateur',
+    label: getRoleLabel(role),
   })) ?? [];
 
   return (
@@ -53,6 +69,11 @@ function Navigation() {
                 {currentUser?.roles.includes('ADMIN') && (
                   <Link to="/admin/users" className="nav-link">
                     Utilisateurs
+                  </Link>
+                )}
+                {canManageThemes && (
+                  <Link to="/admin/themes" className="nav-link">
+                    Thèmes
                   </Link>
                 )}
               </div>
@@ -107,8 +128,11 @@ function App() {
             <Route path="/" element={<JournalistSearchPage />} />
             <Route path="/journalists/:id" element={<JournalistProfilePage />} />
             <Route path="/guide" element={<UserGuidePage />} />
-            <Route element={<ProtectedRoute requiredRole="ADMIN" />}>
+            <Route element={<ProtectedRoute requiredRoles={['ADMIN']} />}>
               <Route path="/admin/users" element={<UserAdminPage />} />
+            </Route>
+            <Route element={<ProtectedRoute requiredRoles={THEME_ADMIN_ROLES} />}>
+              <Route path="/admin/themes" element={<ThemeAdminPage />} />
             </Route>
           </Route>
         </Routes>

@@ -21,6 +21,7 @@ interface EditUserFormState {
 
 const ROLE_OPTIONS: Array<{ value: UserRole; label: string }> = [
   { value: 'USER', label: 'Utilisateur standard' },
+  { value: 'THEME_MANAGER', label: 'Gestionnaire des thèmes' },
   { value: 'ADMIN', label: 'Administrateur' },
 ];
 

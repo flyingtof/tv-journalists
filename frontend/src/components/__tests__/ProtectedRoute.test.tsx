@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AuthContext } from '../../context/AuthContext';
 import { ProtectedRoute } from '../ProtectedRoute';
 import type { AuthContextValue } from '../../context/AuthContext';
-import type { CurrentUser } from '../../types';
+import type { CurrentUser, UserRole } from '../../types';
 
 const createAuthValue = ({
   currentUser = null,
@@ -34,6 +34,7 @@ const renderProtectedRoute = (
           <Route element={routeElement}>
             <Route path="/guide" element={<div>Guide page</div>} />
             <Route path="/admin/users" element={<div>Admin page</div>} />
+            <Route path="/admin/themes" element={<div>Theme admin page</div>} />
           </Route>
         </Routes>
       </MemoryRouter>
@@ -85,10 +86,46 @@ describe('ProtectedRoute', () => {
         },
       }),
       '/admin/users',
-      <ProtectedRoute requiredRole="ADMIN" />,
+      <ProtectedRoute requiredRoles={['ADMIN']} />,
     );
 
     expect(screen.getByText('Search page')).toBeInTheDocument();
     expect(screen.queryByText('Admin page')).not.toBeInTheDocument();
+  });
+
+  it('redirects theme managers away from the users admin route', () => {
+    renderProtectedRoute(
+      createAuthValue({
+        currentUser: {
+          username: 'theme-manager',
+          firstName: 'Thelma',
+          lastName: 'Themes',
+          roles: ['THEME_MANAGER'],
+        },
+      }),
+      '/admin/users',
+      <ProtectedRoute requiredRoles={['ADMIN']} />,
+    );
+
+    expect(screen.getByText('Search page')).toBeInTheDocument();
+    expect(screen.queryByText('Admin page')).not.toBeInTheDocument();
+  });
+
+  it('allows users with one of the allowed roles onto theme admin routes', () => {
+    renderProtectedRoute(
+      createAuthValue({
+        currentUser: {
+          username: 'theme-manager',
+          firstName: 'Thelma',
+          lastName: 'Themes',
+          roles: ['THEME_MANAGER'],
+        },
+      }),
+      '/admin/themes',
+      <ProtectedRoute requiredRoles={['ADMIN', 'THEME_MANAGER'] satisfies UserRole[]} />,
+    );
+
+    expect(screen.getByText('Theme admin page')).toBeInTheDocument();
+    expect(screen.queryByText('Search page')).not.toBeInTheDocument();
   });
 });
