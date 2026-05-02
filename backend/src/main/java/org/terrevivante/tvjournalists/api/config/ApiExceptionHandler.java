@@ -1,6 +1,7 @@
 package org.terrevivante.tvjournalists.api.config;
 
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -11,6 +12,9 @@ import org.terrevivante.tvjournalists.api.dto.ValidationErrorResponse;
 import org.terrevivante.tvjournalists.application.exception.ActivityNotFoundException;
 import org.terrevivante.tvjournalists.application.exception.ActivityNotOwnedByJournalistException;
 import org.terrevivante.tvjournalists.application.exception.JournalistNotFoundException;
+import org.terrevivante.tvjournalists.application.exception.ThemeAlreadyExistsException;
+import org.terrevivante.tvjournalists.application.exception.ThemeInUseException;
+import org.terrevivante.tvjournalists.application.exception.ThemeNotFoundException;
 import org.terrevivante.tvjournalists.application.exception.UserAlreadyExistsException;
 import org.terrevivante.tvjournalists.application.exception.UserNotFoundException;
 
@@ -68,6 +72,40 @@ public class ApiExceptionHandler {
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Void> handleUserNotFound(UserNotFoundException exception) {
         return ResponseEntity.notFound().build();
+    }
+
+    @ExceptionHandler(ThemeAlreadyExistsException.class)
+    public ResponseEntity<Void> handleThemeAlreadyExists(ThemeAlreadyExistsException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).build();
+    }
+
+    @ExceptionHandler(ThemeInUseException.class)
+    public ResponseEntity<Void> handleThemeInUse(ThemeInUseException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).build();
+    }
+
+    @ExceptionHandler(ThemeNotFoundException.class)
+    public ResponseEntity<Void> handleThemeNotFound(ThemeNotFoundException exception) {
+        return ResponseEntity.notFound().build();
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Void> handleDataIntegrityViolation(DataIntegrityViolationException exception) {
+        if (isThemeIntegrityViolation(exception)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+        throw exception;
+    }
+
+    private static boolean isThemeIntegrityViolation(DataIntegrityViolationException exception) {
+        for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
+            String message = cause.getMessage();
+            if (message != null && (message.contains("ux_theme_name_lower")
+                || message.contains("activity_themes_theme_id_fkey"))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static String extractFieldName(String propertyPath) {

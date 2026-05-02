@@ -42,3 +42,4 @@ build/
 .copilot/*
 !.copilot/mcp-config.json
 
+docs/superpowers/

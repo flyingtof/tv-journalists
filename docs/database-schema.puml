@@ -1,0 +1,106 @@
+@startuml
+title Schema de base de donnees - TV Journalists
+
+hide empty methods
+skinparam classAttributeIconSize 0
+
+entity "journalist" as journalist {
+  * id : UUID <<PK>>
+  --
+  * first_name : VARCHAR(255)
+  * last_name : VARCHAR(255)
+  --
+  global_email : VARCHAR(255)
+  global_phone : VARCHAR(50)
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+entity "media" as media {
+  * id : UUID <<PK>>
+  --
+  * name : VARCHAR(255) <<UNIQUE>>
+  * type : VARCHAR(50)
+  --
+  url : VARCHAR(255)
+}
+
+entity "theme" as theme {
+  * id : UUID <<PK>>
+  --
+  * name : VARCHAR(255) <<UNIQUE>>
+}
+
+entity "activity" as activity {
+  * id : UUID <<PK>>
+  --
+  * journalist_id : UUID <<FK>>
+  * media_id : UUID <<FK>>
+  --
+  role : VARCHAR(255)
+  specific_email : VARCHAR(255)
+  specific_phone : VARCHAR(50)
+}
+
+entity "activity_themes" as activity_themes {
+  * activity_id : UUID <<PK, FK>>
+  * theme_id : UUID <<PK, FK>>
+}
+
+entity "interaction_log" as interaction_log {
+  * id : UUID <<PK>>
+  --
+  * journalist_id : UUID <<FK>>
+  activity_id : UUID <<FK>>
+  --
+  * date : DATE
+  * description : TEXT
+  created_by : UUID
+  created_at : TIMESTAMPTZ
+}
+
+entity "application_user" as application_user {
+  * id : UUID <<PK>>
+  --
+  * username : VARCHAR(255) <<UNIQUE>>
+  * password_hash : VARCHAR(255)
+  --
+  first_name : VARCHAR(255)
+  last_name : VARCHAR(255)
+  * enabled : BOOLEAN
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+entity "role" as role {
+  * id : UUID <<PK>>
+  --
+  * code : VARCHAR(50) <<UNIQUE>>
+  * label : VARCHAR(100)
+}
+
+entity "user_role" as user_role {
+  * user_id : UUID <<PK, FK>>
+  * role_id : UUID <<PK, FK>>
+}
+
+journalist ||--o{ activity : journalist_id
+media ||--o{ activity : media_id
+activity ||--o{ activity_themes : activity_id
+theme ||--o{ activity_themes : theme_id
+journalist ||--o{ interaction_log : journalist_id
+activity |o--o{ interaction_log : activity_id
+application_user ||--o{ user_role : user_id
+role ||--o{ user_role : role_id
+
+note bottom of activity_themes
+  Table d'association pour la relation
+  plusieurs-a-plusieurs entre activite et theme.
+end note
+
+note bottom of user_role
+  Table d'association entre utilisateurs
+  applicatifs et roles de securite.
+end note
+
+@enduml
