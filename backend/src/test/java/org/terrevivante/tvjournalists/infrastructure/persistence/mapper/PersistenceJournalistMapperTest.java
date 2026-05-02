@@ -228,6 +228,11 @@ class PersistenceJournalistMapperTest {
     }
 
     @Test
+    void toDomainList_nullList_returnsEmptyList() {
+        assertThat(mapper.toDomainList(null)).isEmpty();
+    }
+
+    @Test
     void toDomainList_multipleEntities_mapsEachToDomain() {
         JournalistEntity e1 = new JournalistEntity("Alice", "Green");
         e1.setId(UUID.randomUUID());
