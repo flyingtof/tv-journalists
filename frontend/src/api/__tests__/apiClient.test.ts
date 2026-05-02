@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fetchAuthBootstrap, fetchWithAuth, UnauthorizedError } from '../apiClient';
+import { ApiError, fetchAuthBootstrap, fetchWithAuth, UnauthorizedError } from '../apiClient';
 
 const mockLocation = (pathname = '/guide', search = '') => {
   let hrefValue = `${pathname}${search}`;
@@ -123,5 +123,24 @@ describe('fetchWithAuth', () => {
     expect(location.hrefAssignments).toBe(0);
 
     location.restore();
+  });
+
+  it('rejects failed requests with a typed API error containing the response status', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        status: 409,
+        ok: false,
+      }),
+    );
+
+    const request = fetchWithAuth('/api/v1/themes/1', { method: 'DELETE' });
+
+    await expect(request).rejects.toBeInstanceOf(ApiError);
+    await expect(request).rejects.toMatchObject({
+      name: 'ApiError',
+      status: 409,
+      message: 'API request failed with status 409',
+    });
   });
 });

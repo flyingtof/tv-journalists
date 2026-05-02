@@ -5,6 +5,16 @@ export class UnauthorizedError extends Error {
   }
 }
 
+export class ApiError extends Error {
+  status: number;
+
+  constructor(status: number, message = `API request failed with status ${status}`) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
 type AuthenticatedRequestInit = Omit<RequestInit, 'credentials'>;
 
 const fetchWithIncludedCredentials = (url: string, options: AuthenticatedRequestInit = {}) =>
@@ -19,7 +29,7 @@ const validateResponse = (response: Response) => {
   }
 
   if (!response.ok) {
-    throw new Error(`API request failed with status ${response.status}`);
+    throw new ApiError(response.status);
   }
 
   return response;

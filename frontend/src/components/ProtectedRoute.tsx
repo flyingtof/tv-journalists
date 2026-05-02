@@ -4,14 +4,14 @@ import { useAuth } from '../context/AuthContext';
 import type { UserRole } from '../types';
 
 interface ProtectedRouteProps extends PropsWithChildren {
-  requiredRole?: UserRole;
+  requiredRoles?: UserRole[];
   redirectTo?: string;
   unauthorizedRedirectTo?: string;
 }
 
 export const ProtectedRoute = ({
   children,
-  requiredRole,
+  requiredRoles = [],
   redirectTo = '/login',
   unauthorizedRedirectTo = '/',
 }: ProtectedRouteProps) => {
@@ -35,7 +35,7 @@ export const ProtectedRoute = ({
     return <Navigate to={redirectTo} replace />;
   }
 
-  if (requiredRole && !currentUser?.roles.includes(requiredRole)) {
+  if (requiredRoles.length > 0 && !requiredRoles.some((role) => currentUser?.roles.includes(role))) {
     return <Navigate to={unauthorizedRedirectTo} replace />;
   }
 
