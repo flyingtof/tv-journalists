@@ -1,0 +1,88 @@
+@startuml
+title Domaine metier - TV Journalists
+
+hide empty methods
+skinparam classAttributeIconSize 0
+
+class Journalist {
+  +id: UUID
+  +firstName: String
+  +lastName: String
+  +globalEmail: String
+  +globalPhone: String
+  +createdAt: OffsetDateTime
+  +updatedAt: OffsetDateTime
+}
+
+class Activity {
+  +id: UUID
+  +journalistId: UUID
+  +role: String
+  +specificEmail: String
+  +specificPhone: String
+}
+
+class Media {
+  +id: UUID
+  +name: String
+  +url: String
+}
+
+class Theme {
+  +id: UUID
+  +name: String
+}
+
+class InteractionLog {
+  +id: UUID
+  +journalistId: UUID
+  +activityId: UUID
+  +date: LocalDate
+  +description: String
+  +createdBy: UUID
+  +createdAt: OffsetDateTime
+}
+
+class ApplicationUser {
+  +id: UUID
+  +username: String
+  +passwordHash: String
+  +firstName: String
+  +lastName: String
+  +enabled: boolean
+}
+
+enum MediaType {
+  RADIO
+  TV
+  PRESS
+  WEB
+  SOCIAL_NETWORK
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+Journalist "1" o-- "0..*" Activity : activities
+Activity "0..*" --> "1" Media : media
+Activity "0..*" --> "0..*" Theme : themes
+InteractionLog "0..*" --> "1" Journalist : journalist
+InteractionLog "0..*" --> "0..1" Activity : activity
+ApplicationUser "0..*" --> "0..*" Role : roles
+Media --> "1" MediaType : type
+InteractionLog ..> ApplicationUser : createdBy (UUID)
+
+note right of Journalist
+  Agregat principal du domaine.
+  Un journaliste porte des activites
+  rattachees a des medias.
+end note
+
+note bottom of InteractionLog
+  Historique des interactions avec un journaliste,
+  eventuellement rattache a une activite precise.
+end note
+
+@enduml

@@ -12,6 +12,7 @@ import org.terrevivante.tvjournalists.infrastructure.persistence.entity.MediaEnt
 import org.terrevivante.tvjournalists.infrastructure.persistence.entity.ThemeEntity;
 import org.terrevivante.tvjournalists.domain.model.MediaType;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -37,6 +38,7 @@ class ReferenceDataControllerIT extends AbstractIntegrationTest {
 
         mockMvc.perform(get("/api/v1/themes"))
             .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$[*].name", hasItem("Biodiversity")));
     }
 
@@ -53,5 +55,21 @@ class ReferenceDataControllerIT extends AbstractIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[*].name", hasItem("Green Press")))
             .andExpect(jsonPath("$[?(@.name == 'Green Press')].type", hasItem("PRESS")));
+    }
+
+    @Test
+    @WithMockUser
+    void shouldRejectThemeNamesThatOnlyDifferByCase() {
+        ThemeEntity theme = new ThemeEntity();
+        theme.setName("Biodiversity");
+        entityManager.persist(theme);
+        entityManager.flush();
+
+        ThemeEntity duplicateTheme = new ThemeEntity();
+        duplicateTheme.setName("biodiversity");
+        entityManager.persist(duplicateTheme);
+
+        assertThatThrownBy(() -> entityManager.flush())
+            .hasMessageContaining("ux_theme_name_lower");
     }
 }

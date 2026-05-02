@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.terrevivante.tvjournalists.application.service.InteractionApplicationService;
 import org.terrevivante.tvjournalists.application.service.JournalistApplicationService;
 import org.terrevivante.tvjournalists.application.service.ReferenceDataApplicationService;
+import org.terrevivante.tvjournalists.application.service.ThemeApplicationService;
 import org.terrevivante.tvjournalists.application.service.UserApplicationService;
 import org.terrevivante.tvjournalists.application.validation.ApplicationValidator;
 import org.terrevivante.tvjournalists.domain.port.ActivityRepository;
@@ -54,9 +55,14 @@ public class ApplicationBeansConfig {
     }
 
     @Bean
-    public ReferenceDataApplicationService referenceDataApplicationService(
-            MediaRepository mediaRepository,
-            ThemeRepository themeRepository) {
-        return new ReferenceDataApplicationService(mediaRepository, themeRepository);
+    public ReferenceDataApplicationService referenceDataApplicationService(MediaRepository mediaRepository) {
+        return new ReferenceDataApplicationService(mediaRepository);
+    }
+
+    @Bean
+    public ThemeApplicationService themeApplicationService(
+            ThemeRepository themeRepository,
+            ApplicationValidator applicationValidator) {
+        return new ThemeApplicationService(themeRepository, applicationValidator);
     }
 }

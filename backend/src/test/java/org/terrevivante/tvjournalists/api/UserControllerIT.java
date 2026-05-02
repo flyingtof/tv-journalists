@@ -71,6 +71,30 @@ class UserControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
+    void shouldCreateUserWithThemeManagerRole() throws Exception {
+        MockHttpSession session = loginAs("admin", "admin123!");
+        String requestBody = """
+            {
+              "username": "theme-manager",
+              "password": "theme123!",
+              "firstName": "Theo",
+              "lastName": "Manager",
+              "enabled": true,
+              "roles": ["THEME_MANAGER"]
+            }
+            """;
+
+        mockMvc.perform(post("/api/v1/users")
+                .session(session)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id").isNotEmpty())
+            .andExpect(jsonPath("$.username").value("theme-manager"))
+            .andExpect(jsonPath("$.roles", hasItem("THEME_MANAGER")));
+    }
+
+    @Test
     void shouldReturnConflictWhenCreatingExistingUsername() throws Exception {
         MockHttpSession session = loginAs("admin", "admin123!");
         String requestBody = """
