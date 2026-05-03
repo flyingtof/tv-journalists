@@ -71,16 +71,6 @@ public class JournalistReadRepositoryAdapter implements JournalistReadRepository
                 .toList();
         }
 
-        if (!withActivities.isEmpty()) {
-            List<UUID> activityIds = withActivities.stream()
-                .flatMap(j -> j.getActivities().stream())
-                .map(ActivityEntity::getId)
-                .toList();
-            if (!activityIds.isEmpty()) {
-                List<ActivityEntity> activitiesWithThemes = activityRepo.findWithThemesByIds(activityIds);
-                readMapper.attachThemes(withActivities, activitiesWithThemes);
-            }
-        }
 
         List<JournalistListItemView> content = readMapper.toListItemViews(withActivities);
         return new PageResult<>(content, page.getTotalElements(), page.getNumber(), page.getSize());

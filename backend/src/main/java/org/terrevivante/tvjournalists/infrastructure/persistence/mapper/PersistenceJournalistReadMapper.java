@@ -16,22 +16,21 @@ import org.terrevivante.tvjournalists.infrastructure.persistence.entity.MediaEnt
 import org.terrevivante.tvjournalists.infrastructure.persistence.entity.ThemeEntity;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface PersistenceJournalistReadMapper {
 
-    @Mapping(source = "activities", target = "activities", qualifiedByName = "toMergedActivities")
+    @Mapping(source = "activities", target = "mediaNames", qualifiedByName = "toDistinctMediaNames")
     JournalistListItemView toListItemView(JournalistEntity entity);
 
     @IterableMapping(nullValueMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
     List<JournalistListItemView> toListItemViews(List<JournalistEntity> entities);
 
-    @Mapping(source = "activities", target = "activities", qualifiedByName = "toMergedActivities")
+    @Mapping(source = "activities", target = "activities", qualifiedByName = "toMergedProfileActivities")
     JournalistProfileView toProfileView(JournalistEntity entity);
 
     MediaView toView(MediaEntity entity);
@@ -46,20 +45,24 @@ public interface PersistenceJournalistReadMapper {
      * This avoids N+1 when the theme collection is lazily loaded after pagination.
      */
     default void attachThemes(List<JournalistEntity> journalists, List<ActivityEntity> activitiesWithThemes) {
-        Map<UUID, ActivityEntity> byId = activitiesWithThemes.stream()
-            .collect(Collectors.toMap(ActivityEntity::getId, activity -> activity));
-        for (JournalistEntity journalist : journalists) {
-            journalist.getActivities().forEach(activity -> {
-                ActivityEntity withThemes = byId.get(activity.getId());
-                if (withThemes != null) {
-                    activity.setThemes(withThemes.getThemes());
-                }
-            });
-        }
+        JournalistMapperSupport.attachThemes(journalists, activitiesWithThemes);
     }
 
-    @Named("toMergedActivities")
-    default List<ActivityView> toMergedActivities(List<ActivityEntity> activities) {
+    @Named("toDistinctMediaNames")
+    default List<String> toDistinctMediaNames(List<ActivityEntity> activities) {
+        if (activities == null || activities.isEmpty()) {
+            return List.of();
+        }
+
+        return List.copyOf(activities.stream()
+            .map(ActivityEntity::getMedia)
+            .filter(media -> media != null && media.getName() != null && !media.getName().isBlank())
+            .map(MediaEntity::getName)
+            .collect(Collectors.toCollection(LinkedHashSet::new)));
+    }
+
+    @Named("toMergedProfileActivities")
+    default List<ActivityView> toMergedProfileActivities(List<ActivityEntity> activities) {
         if (activities == null || activities.isEmpty()) {
             return List.of();
         }
@@ -79,32 +82,19 @@ public interface PersistenceJournalistReadMapper {
         return new ActivityView(
             existing.id(),
             existing.media(),
-            firstNonBlank(existing.role(), activity.role()),
-            firstNonBlank(existing.specificEmail(), activity.specificEmail()),
-            firstNonBlank(existing.specificPhone(), activity.specificPhone()),
+            JournalistMapperSupport.firstNonBlank(existing.role(), activity.role()),
+            JournalistMapperSupport.firstNonBlank(existing.specificEmail(), activity.specificEmail()),
+            JournalistMapperSupport.firstNonBlank(existing.specificPhone(), activity.specificPhone()),
             mergeThemes(existing.themes(), activity.themes())
         );
     }
 
     private List<ThemeView> mergeThemes(List<ThemeView> left, List<ThemeView> right) {
-        Map<String, ThemeView> themesByKey = new LinkedHashMap<>();
-        left.forEach(theme -> themesByKey.put(themeKey(theme), theme));
-        right.forEach(theme -> themesByKey.putIfAbsent(themeKey(theme), theme));
-        return List.copyOf(themesByKey.values());
+        return JournalistMapperSupport.mergeByStableKey(left, right, this::themeKey);
     }
 
     private String themeKey(ThemeView theme) {
-        if (theme.id() != null) {
-            return theme.id().toString();
-        }
-        return "name:" + theme.name();
-    }
-
-    private String firstNonBlank(String left, String right) {
-        if (left != null && !left.isBlank()) {
-            return left;
-        }
-        return right;
+        return JournalistMapperSupport.themeKey(theme.id(), theme.name());
     }
 }
 

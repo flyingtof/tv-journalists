@@ -57,7 +57,10 @@ class JournalistSearchIT extends AbstractIntegrationTest {
                 .param("media", "Green Press"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content.length()").value(1))
-            .andExpect(jsonPath("$.content[0].firstName").value("Alice"));
+            .andExpect(jsonPath("$.content[0].firstName").value("Alice"))
+            .andExpect(jsonPath("$.content[0].mediaNames[0]").value("Green Press"))
+            .andExpect(jsonPath("$.content[0].activities").doesNotExist())
+            .andExpect(jsonPath("$.content[0].globalPhone").doesNotExist());
     }
 
     @Test

@@ -3,6 +3,7 @@ package org.terrevivante.tvjournalists.api.config;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.terrevivante.tvjournalists.api.dto.ApiError;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -10,6 +11,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ApiExceptionHandlerTest {
 
     private final ApiExceptionHandler handler = new ApiExceptionHandler();
+
+    @Test
+    void shouldMapIllegalArgumentToBadRequestApiError() {
+        assertThat(handler.handleIllegalArgument(new IllegalArgumentException("Invalid sort direction")))
+            .satisfies(response -> {
+                assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+                assertThat(response.getBody()).isEqualTo(new ApiError(400, "Invalid sort direction"));
+            });
+    }
 
     @Test
     void shouldMapThemeIntegrityViolationToConflict() {

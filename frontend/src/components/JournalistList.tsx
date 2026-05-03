@@ -1,10 +1,10 @@
 import React from 'react';
-import type { Journalist } from '../types';
+import type { JournalistListItem } from '../types';
 import { Link, useLocation } from 'react-router-dom';
 import '../styles/JournalistList.css';
 
 interface Props {
-  journalists: Journalist[];
+  journalists: JournalistListItem[];
   onSort: (sortBy: string) => void;
   sort: { sortBy: string; direction: string };
 }
@@ -63,8 +63,8 @@ export const JournalistList: React.FC<Props> = ({ journalists, onSort, sort }) =
                 {journalist.globalEmail || '-'}
               </td>
               <td className="table-cell cell-secondary">
-                {journalist.activities.length > 0 ? (
-                  <span>{journalist.activities.map(a => a.mediaName).join(', ')}</span>
+                {journalist.mediaNames.length > 0 ? (
+                  <span>{journalist.mediaNames.join(', ')}</span>
                 ) : (
                   <span>-</span>
                 )}

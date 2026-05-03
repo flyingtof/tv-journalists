@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import type { Journalist, Page } from '../types';
+import type { JournalistListItem, Page } from '../types';
 import { JournalistList } from '../components/JournalistList';
 import { Autocomplete } from '../components/Autocomplete';
-import { fetchWithAuth, UnauthorizedError } from '../api/apiClient';
+import { ApiError, fetchWithAuth, UnauthorizedError } from '../api/apiClient';
 import '../styles/Search.css';
 
 interface SearchFilters {
@@ -21,21 +21,25 @@ interface NamedOption {
   name: string;
 }
 
-interface SearchResponsePage {
-  totalPages: number;
-  number: number;
-  size: number;
-  totalElements: number;
-}
-
-interface SearchResponseWithPage {
-  content: Journalist[];
-  page: SearchResponsePage;
-}
-
 const DEFAULT_PAGE_SIZE = 10;
 const DEFAULT_SORT: SortState = { sortBy: 'lastName', direction: 'asc' };
 const DEBOUNCE_MS = 150;
+
+const parseNonNegativeInt = (value: string | null, fallback: number) => {
+  if (value === null) {
+    return fallback;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : fallback;
+};
+
+const parsePositiveInt = (value: string | null, fallback: number) => {
+  if (value === null) {
+    return fallback;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : fallback;
+};
 
 const areStringArraysEqual = (left: string[], right: string[]) =>
   left.length === right.length && left.every((value, index) => value === right[index]);
@@ -58,40 +62,8 @@ const buildParams = (searchFilters: SearchFilters, page: number, pageSize: numbe
   return params;
 };
 
-const normalizeJournalists = (data: Page<Journalist> | SearchResponseWithPage | Journalist[]): Page<Journalist> => {
-  if (Array.isArray(data)) {
-    return {
-      content: data,
-      totalPages: 1,
-      number: 0,
-      first: true,
-      last: true,
-      size: data.length,
-      totalElements: data.length,
-      numberOfElements: data.length,
-      empty: data.length === 0,
-    };
-  }
-
-  if ('page' in data) {
-    return {
-      content: data.content,
-      totalPages: data.page.totalPages,
-      number: data.page.number,
-      size: data.page.size,
-      totalElements: data.page.totalElements,
-      first: data.page.number === 0,
-      last: data.page.number >= data.page.totalPages - 1,
-      numberOfElements: data.content.length,
-      empty: data.content.length === 0,
-    };
-  }
-
-  return data;
-};
-
 export const JournalistSearchPage: React.FC = () => {
-  const [journalists, setJournalists] = useState<Page<Journalist> | null>(null);
+  const [journalists, setJournalists] = useState<Page<JournalistListItem> | null>(null);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [sort, setSort] = useState<SortState>(DEFAULT_SORT);
@@ -102,6 +74,7 @@ export const JournalistSearchPage: React.FC = () => {
   });
   const [mediaList, setMediaList] = useState<string[]>([]);
   const [themeList, setThemeList] = useState<string[]>([]);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const urlDebounceRef = useRef<number | null>(null);
@@ -138,11 +111,17 @@ export const JournalistSearchPage: React.FC = () => {
 
     try {
       const response = await fetchWithAuth(`/api/v1/journalists?${params.toString()}`);
-      const data = (await response.json()) as Page<Journalist> | SearchResponseWithPage | Journalist[];
-      setJournalists(normalizeJournalists(data));
+      const data = (await response.json()) as Page<JournalistListItem>;
+      setJournalists(data);
+      setSearchError(null);
     } catch (error) {
       if (!(error instanceof UnauthorizedError)) {
         console.error('Failed to fetch journalists:', error);
+        if (error instanceof ApiError) {
+          setSearchError(error.message);
+        } else {
+          setSearchError("Impossible de charger la liste des journalistes. Veuillez reessayer.");
+        }
       }
     }
   }, []);
@@ -219,8 +198,8 @@ export const JournalistSearchPage: React.FC = () => {
       const name = params.get('name') || '';
       const media = params.getAll('media');
       const themes = params.getAll('themes');
-      const nextPage = Number(params.get('page') ?? 0);
-      const nextPageSize = Number(params.get('size') ?? DEFAULT_PAGE_SIZE);
+      const nextPage = parseNonNegativeInt(params.get('page'), 0);
+      const nextPageSize = parsePositiveInt(params.get('size'), DEFAULT_PAGE_SIZE);
       const sortParam = params.get('sort') || `${DEFAULT_SORT.sortBy},${DEFAULT_SORT.direction}`;
       const [sortBy, direction] = sortParam.split(',');
       const nextSort: SortState = {
@@ -374,6 +353,12 @@ export const JournalistSearchPage: React.FC = () => {
           </button>
         </div>
       </form>
+
+      {searchError && (
+        <div role="alert" className="error-message">
+          {searchError}
+        </div>
+      )}
 
       {journalists && (
         <div className="pagination-sticky">

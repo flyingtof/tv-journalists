@@ -9,6 +9,8 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
+
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -22,6 +24,9 @@ public class JournalistControllerIT extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Test
     @WithMockUser
@@ -87,5 +92,24 @@ public class JournalistControllerIT extends AbstractIntegrationTest {
         mockMvc.perform(get("/api/v1/journalists")
                 .param("sort", ",asc"))
             .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser
+    void shouldReturnProfilePayloadWithoutUnusedActivityFields() throws Exception {
+        JournalistFixtures fixtures = new JournalistFixtures(entityManager);
+        var theme = fixtures.persistTheme("Biodiversity");
+        var media = fixtures.persistMedia("Green Press", org.terrevivante.tvjournalists.domain.model.MediaType.PRESS);
+        var journalist = fixtures.persistJournalistWithActivity("Alice", "Green", media, theme);
+        entityManager.flush();
+        entityManager.clear();
+
+        mockMvc.perform(get("/api/v1/journalists/" + journalist.getId()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.firstName").value("Alice"))
+            .andExpect(jsonPath("$.activities[0].mediaName").value("Green Press"))
+            .andExpect(jsonPath("$.activities[0].themes[0].name").value("Biodiversity"))
+            .andExpect(jsonPath("$.activities[0].mediaId").doesNotExist())
+            .andExpect(jsonPath("$.activities[0].specificPhone").doesNotExist());
     }
 }
