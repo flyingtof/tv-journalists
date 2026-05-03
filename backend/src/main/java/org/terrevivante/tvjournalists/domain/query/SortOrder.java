@@ -1,5 +1,8 @@
 package org.terrevivante.tvjournalists.domain.query;
 
+/**
+ * Décrit un critère de tri: champ métier ciblé et sens du tri.
+ */
 public record SortOrder(String field, SortDirection direction) {
     public SortOrder {
         if (field == null || field.isBlank()) {
