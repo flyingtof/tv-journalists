@@ -6,10 +6,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.terrevivante.tvjournalists.application.service.InteractionApplicationService;
 import org.terrevivante.tvjournalists.application.service.JournalistApplicationService;
+import org.terrevivante.tvjournalists.application.service.JournalistReadApplicationService;
 import org.terrevivante.tvjournalists.application.service.ReferenceDataApplicationService;
 import org.terrevivante.tvjournalists.application.service.ThemeApplicationService;
 import org.terrevivante.tvjournalists.application.service.UserApplicationService;
 import org.terrevivante.tvjournalists.application.validation.ApplicationValidator;
+import org.terrevivante.tvjournalists.application.port.JournalistReadRepository;
 import org.terrevivante.tvjournalists.domain.port.ActivityRepository;
 import org.terrevivante.tvjournalists.domain.port.ApplicationUserRepository;
 import org.terrevivante.tvjournalists.domain.port.InteractionLogRepository;
@@ -30,6 +32,12 @@ public class ApplicationBeansConfig {
             JournalistRepository journalistRepository,
             ApplicationValidator applicationValidator) {
         return new JournalistApplicationService(journalistRepository, applicationValidator);
+    }
+
+    @Bean
+    public JournalistReadApplicationService journalistReadApplicationService(
+            JournalistReadRepository journalistReadRepository) {
+        return new JournalistReadApplicationService(journalistReadRepository);
     }
 
     @Bean
