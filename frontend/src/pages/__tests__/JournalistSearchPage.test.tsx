@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ApiError, fetchWithAuth } from '../../api/apiClient';
 import { JournalistSearchPage } from '../JournalistSearchPage';
+import { I18nProvider } from '../../i18n/I18nProvider';
 
 vi.mock('../../components/Autocomplete', () => ({
   Autocomplete: () => <div data-testid="autocomplete" />,
@@ -37,6 +38,15 @@ const emptyPage = {
   empty: true,
 };
 
+const renderSearchPage = () =>
+  render(
+    <I18nProvider>
+      <MemoryRouter initialEntries={['/']}>
+        <JournalistSearchPage />
+      </MemoryRouter>
+    </I18nProvider>,
+  );
+
 describe('JournalistSearchPage', () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -51,11 +61,7 @@ describe('JournalistSearchPage', () => {
       return jsonResponse(emptyPage);
     });
 
-    render(
-      <MemoryRouter initialEntries={['/?page=abc&size=-1']}>
-        <JournalistSearchPage />
-      </MemoryRouter>,
-    );
+    renderSearchPage();
 
     await waitFor(() => {
       expect(fetchWithAuthMock).toHaveBeenCalledWith(
@@ -73,13 +79,54 @@ describe('JournalistSearchPage', () => {
       throw new ApiError(500, 'Erreur backend');
     });
 
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <JournalistSearchPage />
-      </MemoryRouter>,
-    );
+    renderSearchPage();
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Erreur backend');
+  });
+
+  it('renders page title using i18n', async () => {
+    const fetchWithAuthMock = vi.mocked(fetchWithAuth);
+    fetchWithAuthMock.mockImplementation(async (url: string) => {
+      if (url === '/api/v1/media' || url === '/api/v1/themes') {
+        return jsonResponse([]);
+      }
+      return jsonResponse(emptyPage);
+    });
+
+    render(
+      <I18nProvider>
+        <MemoryRouter initialEntries={['/']}>
+          <JournalistSearchPage />
+        </MemoryRouter>
+      </I18nProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Recherche de journalistes', level: 1 })).toBeInTheDocument();
+    });
+  });
+
+  it('renders pagination buttons with i18n text', async () => {
+    const fetchWithAuthMock = vi.mocked(fetchWithAuth);
+    fetchWithAuthMock.mockImplementation(async (url: string) => {
+      if (url === '/api/v1/media' || url === '/api/v1/themes') {
+        return jsonResponse([]);
+      }
+      const page = {
+        ...emptyPage,
+        first: false,
+        last: false,
+        totalElements: 50,
+      };
+      return jsonResponse(page);
+    });
+
+    renderSearchPage();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Précédent' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Suivant' })).toBeInTheDocument();
+    });
   });
 });
 

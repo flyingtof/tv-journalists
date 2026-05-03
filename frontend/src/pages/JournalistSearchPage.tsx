@@ -4,6 +4,7 @@ import type { JournalistListItem, Page } from '../types';
 import { JournalistList } from '../components/JournalistList';
 import { Autocomplete } from '../components/Autocomplete';
 import { ApiError, fetchWithAuth, UnauthorizedError } from '../api/apiClient';
+import { useI18n } from '../i18n/useI18n';
 import '../styles/Search.css';
 
 interface SearchFilters {
@@ -63,6 +64,7 @@ const buildParams = (searchFilters: SearchFilters, page: number, pageSize: numbe
 };
 
 export const JournalistSearchPage: React.FC = () => {
+  const { t } = useI18n();
   const [journalists, setJournalists] = useState<Page<JournalistListItem> | null>(null);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -120,11 +122,11 @@ export const JournalistSearchPage: React.FC = () => {
         if (error instanceof ApiError) {
           setSearchError(error.message);
         } else {
-          setSearchError("Impossible de charger la liste des journalistes. Veuillez reessayer.");
+          setSearchError(t('journalistSearch.loadError'));
         }
       }
     }
-  }, []);
+  }, [t]);
 
   const updateUrl = useCallback(
     (searchFilters: SearchFilters, nextPage: number, nextPageSize: number, nextSort: SortState, replace = true) => {
@@ -288,12 +290,12 @@ export const JournalistSearchPage: React.FC = () => {
 
   return (
     <div className="search-container">
-      <h1 className="search-title">Recherche de journalistes</h1>
+      <h1 className="search-title">{t('journalistSearch.title')}</h1>
 
       <form onSubmit={(event) => { event.preventDefault(); handleSearch(); }} className="search-form">
         <div className="search-grid">
           <div className="search-field">
-            <label htmlFor="name" className="field-label">Nom</label>
+            <label htmlFor="name" className="field-label">{t('journalistSearch.nameLabel')}</label>
             <input
               type="text"
               id="name"
@@ -305,7 +307,7 @@ export const JournalistSearchPage: React.FC = () => {
             />
           </div>
           <div className="search-field">
-            <label htmlFor="media" className="field-label">Média</label>
+            <label htmlFor="media" className="field-label">{t('journalistSearch.mediaLabel')}</label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <div style={{ width: '100%' }}>
                 <Autocomplete
@@ -327,7 +329,7 @@ export const JournalistSearchPage: React.FC = () => {
             </div>
           </div>
           <div className="search-field">
-            <label htmlFor="themes" className="field-label">Thèmes</label>
+            <label htmlFor="themes" className="field-label">{t('journalistSearch.themesLabel')}</label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <div style={{ width: '100%' }}>
                 <Autocomplete
@@ -349,7 +351,7 @@ export const JournalistSearchPage: React.FC = () => {
             </div>
           </div>
           <button type="submit" className="search-button">
-            Rechercher
+            {t('journalistSearch.search')}
           </button>
         </div>
       </form>
@@ -368,17 +370,17 @@ export const JournalistSearchPage: React.FC = () => {
               disabled={journalists.first}
               className="pagination-button"
             >
-              Précédent
+              {t('journalistSearch.pagination.previous')}
             </button>
             <span className="pagination-info">
               {(() => {
                 const total = journalists.totalElements ?? 0;
                 const size = journalists.size ?? 0;
                 const pageNum = journalists.number ?? 0;
-                if (total === 0) return '0-0 sur 0';
+                if (total === 0) return t('journalistSearch.pagination.emptyState');
                 const start = pageNum * size + 1;
                 const end = Math.min((pageNum + 1) * size, total);
-                return `${start}-${end} sur ${total}`;
+                return t('journalistSearch.pagination.summary', { start, end, total });
               })()}
             </span>
             <button
@@ -386,7 +388,7 @@ export const JournalistSearchPage: React.FC = () => {
               disabled={journalists.last}
               className="pagination-button"
             >
-              Suivant
+              {t('journalistSearch.pagination.next')}
             </button>
             <select value={pageSize} onChange={handlePageSizeChange} className="pagination-select">
               <option value={5}>5</option>
