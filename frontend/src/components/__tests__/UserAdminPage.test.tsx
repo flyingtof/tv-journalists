@@ -1,6 +1,7 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { I18nProvider } from '../../i18n/I18nProvider';
 import { UserAdminPage } from '../../pages/UserAdminPage';
 import type { UserSummary } from '../../types';
 
@@ -15,6 +16,14 @@ const jsonResponse = (data: unknown, status = 200): MockResponse => ({
   ok: status >= 200 && status < 300,
   json: async () => data,
 });
+
+const renderWithI18n = (component: React.ReactElement) => {
+  return render(
+    <I18nProvider>
+      {component}
+    </I18nProvider>,
+  );
+};
 
 describe('UserAdminPage', () => {
   afterEach(() => {
@@ -47,7 +56,7 @@ describe('UserAdminPage', () => {
 
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<UserAdminPage />);
+    renderWithI18n(<UserAdminPage />);
 
     expect(await screen.findByRole('cell', { name: 'admin' })).toBeInTheDocument();
     expect(screen.getByRole('cell', { name: 'ADMIN, USER' })).toBeInTheDocument();
@@ -62,7 +71,7 @@ describe('UserAdminPage', () => {
 
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<UserAdminPage />);
+    renderWithI18n(<UserAdminPage />);
 
     await screen.findByRole('heading', { name: 'Créer un utilisateur' });
 
@@ -115,7 +124,7 @@ describe('UserAdminPage', () => {
 
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<UserAdminPage />);
+    renderWithI18n(<UserAdminPage />);
 
     await screen.findByRole('cell', { name: 'admin' });
 
@@ -185,7 +194,7 @@ describe('UserAdminPage', () => {
 
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<UserAdminPage />);
+    renderWithI18n(<UserAdminPage />);
 
     await screen.findByRole('heading', { name: 'Créer un utilisateur' });
 
@@ -234,7 +243,7 @@ describe('UserAdminPage', () => {
 
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<UserAdminPage />);
+    renderWithI18n(<UserAdminPage />);
 
     await screen.findByRole('cell', { name: 'admin' });
 
@@ -271,7 +280,7 @@ describe('UserAdminPage', () => {
       value: scrollIntoViewMock,
     });
 
-    render(<UserAdminPage />);
+    renderWithI18n(<UserAdminPage />);
 
     await screen.findByRole('cell', { name: 'admin' });
 
@@ -305,7 +314,7 @@ describe('UserAdminPage', () => {
       return scheduledCallbacks.length;
     });
 
-    render(<UserAdminPage />);
+    renderWithI18n(<UserAdminPage />);
 
     await screen.findByRole('cell', { name: 'admin' });
 
@@ -340,7 +349,7 @@ describe('UserAdminPage', () => {
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(existingUsers)));
 
-    render(<UserAdminPage />);
+    renderWithI18n(<UserAdminPage />);
 
     await screen.findByRole('cell', { name: 'admin' });
 
@@ -366,7 +375,7 @@ describe('UserAdminPage', () => {
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(existingUsers)));
 
-    render(<UserAdminPage />);
+    renderWithI18n(<UserAdminPage />);
 
     await screen.findByRole('cell', { name: 'admin' });
 
@@ -408,7 +417,7 @@ describe('UserAdminPage', () => {
 
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<UserAdminPage />);
+    renderWithI18n(<UserAdminPage />);
 
     await screen.findByRole('cell', { name: 'admin' });
 
@@ -464,7 +473,7 @@ describe('UserAdminPage', () => {
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(existingUsers)));
 
-    render(<UserAdminPage />);
+    renderWithI18n(<UserAdminPage />);
 
     await screen.findByRole('cell', { name: 'admin' });
 
@@ -502,7 +511,7 @@ describe('UserAdminPage', () => {
 
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<UserAdminPage />);
+    renderWithI18n(<UserAdminPage />);
 
     await screen.findByRole('cell', { name: 'admin' });
 
@@ -547,7 +556,7 @@ describe('UserAdminPage', () => {
 
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<UserAdminPage />);
+    renderWithI18n(<UserAdminPage />);
 
     await screen.findByRole('cell', { name: 'admin' });
 
@@ -608,7 +617,7 @@ describe('UserAdminPage', () => {
 
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<UserAdminPage />);
+    renderWithI18n(<UserAdminPage />);
 
     await screen.findByRole('cell', { name: 'admin' });
 
@@ -663,7 +672,7 @@ describe('UserAdminPage', () => {
 
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<UserAdminPage />);
+    renderWithI18n(<UserAdminPage />);
 
     await screen.findByRole('cell', { name: 'admin' });
 
@@ -705,4 +714,193 @@ describe('UserAdminPage', () => {
     expect(screen.queryByText('Utilisateur mis à jour.')).not.toBeInTheDocument();
     expect(newWithin.getByLabelText('Nouveau mot de passe')).toHaveValue('');
   });
+
+  it('displays page title and section headings in translated UI', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse([]));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<UserAdminPage />);
+
+    expect(await screen.findByRole('heading', { name: 'Gestion des utilisateurs' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Créer un utilisateur' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Utilisateurs existants' })).toBeInTheDocument();
+  });
+
+  it('displays table headers with translated labels', async () => {
+    const users: UserSummary[] = [
+      {
+        id: '1',
+        username: 'test',
+        firstName: 'Test',
+        lastName: 'User',
+        enabled: true,
+        roles: ['USER'],
+      },
+    ];
+
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(users));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<UserAdminPage />);
+
+    const table = await screen.findByRole('table');
+    expect(within(table).getByRole('columnheader', { name: 'Utilisateur' })).toBeInTheDocument();
+    expect(within(table).getByRole('columnheader', { name: 'Rôles' })).toBeInTheDocument();
+    expect(within(table).getByRole('columnheader', { name: 'Statut' })).toBeInTheDocument();
+    expect(within(table).getByRole('columnheader', { name: 'Actions' })).toBeInTheDocument();
+  });
+
+  it('displays create button with translated label', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse([]));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<UserAdminPage />);
+
+    expect(await screen.findByRole('button', { name: /Créer l.utilisateur/ })).toBeInTheDocument();
+  });
+
+  it('displays empty state with translated text when no users exist', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse([]));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<UserAdminPage />);
+
+    expect(await screen.findByText('Aucun utilisateur trouvé.')).toBeInTheDocument();
+  });
+
+  it('displays error alert with translated message when loading users fails', async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new Error('Network error'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<UserAdminPage />);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Impossible de charger les utilisateurs.');
+  });
+
+  it('displays create error with translated message when user creation fails', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse([]))
+      .mockRejectedValueOnce(new Error('API error'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<UserAdminPage />);
+
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText('Nom d’utilisateur'), 'testuser');
+    await user.type(screen.getByLabelText('Mot de passe initial'), 'password123');
+    await user.type(screen.getByLabelText('Prénom'), 'Test');
+    await user.type(screen.getByLabelText('Nom'), 'User');
+    await user.click(screen.getByRole('button', { name: /Créer l.utilisateur/ }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Impossible de créer l’utilisateur.');
+  });
+
+  it('displays translated form labels for username and password fields', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse([]));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<UserAdminPage />);
+
+    expect(await screen.findByLabelText('Nom d’utilisateur')).toBeInTheDocument();
+    expect(screen.getByLabelText('Mot de passe initial')).toBeInTheDocument();
+  });
+
+  it('displays translated section headers and descriptions', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse([]));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<UserAdminPage />);
+
+    expect(await screen.findByRole('heading', { name: 'Gestion des utilisateurs' })).toBeInTheDocument();
+    expect(screen.getByText('Créez un compte et consultez rapidement les accès existants.')).toBeInTheDocument();
+  });
+
+  it('displays translated success message when user is created', async () => {
+    const initialUsers: UserSummary[] = [];
+    const refreshedUsers: UserSummary[] = [
+      { id: '1', username: 'testuser', firstName: 'Test', lastName: 'User', enabled: true, roles: ['USER'] },
+    ];
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(initialUsers))
+      .mockResolvedValueOnce(jsonResponse({}))
+      .mockResolvedValueOnce(jsonResponse(refreshedUsers));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<UserAdminPage />);
+
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText('Nom d’utilisateur'), 'testuser');
+    await user.type(screen.getByLabelText('Mot de passe initial'), 'password123');
+    await user.type(screen.getByLabelText('Prénom'), 'Test');
+    await user.type(screen.getByLabelText('Nom'), 'User');
+    await user.click(screen.getByRole('button', { name: /Créer l.utilisateur/ }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Utilisateur créé.');
+  });
+
+  it('displays translated user update success message', async () => {
+    const existingUsers: UserSummary[] = [
+      { id: '1', username: 'testuser', firstName: 'Test', lastName: 'User', enabled: true, roles: ['USER'] },
+    ];
+
+    let resolveUpdate: ((value: MockResponse) => void) | null = null;
+    const updateResponse = new Promise<MockResponse>((resolve) => {
+      resolveUpdate = resolve;
+    });
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(existingUsers))
+      .mockImplementationOnce(() => updateResponse)
+      .mockResolvedValueOnce(jsonResponse(existingUsers));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<UserAdminPage />);
+
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Modifier testuser' }));
+    await user.type(screen.getByDisplayValue('Test'), 'ModifiedTest');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }));
+
+    await act(async () => {
+      resolveUpdate?.(jsonResponse({}));
+    });
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Utilisateur mis à jour.');
+  });
+
+  it('displays translated password reset success message', async () => {
+    const existingUsers: UserSummary[] = [
+      { id: '1', username: 'testuser', firstName: 'Test', lastName: 'User', enabled: true, roles: ['USER'] },
+    ];
+
+    let resolveReset: ((value: MockResponse) => void) | null = null;
+    const resetResponse = new Promise<MockResponse>((resolve) => {
+      resolveReset = resolve;
+    });
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(existingUsers))
+      .mockImplementationOnce(() => resetResponse)
+      .mockResolvedValueOnce(jsonResponse(existingUsers));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<UserAdminPage />);
+
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Modifier testuser' }));
+    await user.type(screen.getByLabelText('Nouveau mot de passe'), 'newpassword123');
+    await user.click(screen.getByRole('button', { name: /Réinitialiser le mot de passe/ }));
+
+    await act(async () => {
+      resolveReset?.(jsonResponse({}));
+    });
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Mot de passe réinitialisé.');
+  });
 });
+
