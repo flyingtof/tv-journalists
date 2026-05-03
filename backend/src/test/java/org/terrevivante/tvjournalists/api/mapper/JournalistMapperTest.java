@@ -8,6 +8,10 @@ import org.terrevivante.tvjournalists.api.dto.JournalistDTO;
 import org.terrevivante.tvjournalists.api.dto.ThemeDTO;
 import org.terrevivante.tvjournalists.application.command.CreateJournalistCommand;
 import org.terrevivante.tvjournalists.application.command.LogInteractionCommand;
+import org.terrevivante.tvjournalists.application.readmodel.ActivityView;
+import org.terrevivante.tvjournalists.application.readmodel.JournalistListItemView;
+import org.terrevivante.tvjournalists.application.readmodel.MediaView;
+import org.terrevivante.tvjournalists.application.readmodel.ThemeView;
 import org.terrevivante.tvjournalists.domain.model.Activity;
 import org.terrevivante.tvjournalists.domain.model.InteractionLog;
 import org.terrevivante.tvjournalists.domain.model.Journalist;
@@ -75,6 +79,42 @@ class JournalistMapperTest {
     @Test
     void toDto_journalist_withNullInput_returnsNull() {
         assertThat(mapper.toDto((Journalist) null)).isNull();
+    }
+
+    @Test
+    void toDto_journalistListItemView_mapsNestedActivitiesWithThemes() {
+        UUID themeId = UUID.randomUUID();
+        UUID mediaId = UUID.randomUUID();
+        UUID activityId = UUID.randomUUID();
+        UUID journalistId = UUID.randomUUID();
+
+        JournalistListItemView journalist = new JournalistListItemView(
+            journalistId,
+            "Alice",
+            "Green",
+            null,
+            null,
+            List.of(new ActivityView(
+                activityId,
+                new MediaView(mediaId, "Green Press"),
+                "Reporter",
+                "act@example.com",
+                "+33611111111",
+                List.of(new ThemeView(themeId, "Biodiversity"))
+            ))
+        );
+
+        JournalistDTO dto = mapper.toDto(journalist);
+
+        assertThat(dto.activities()).hasSize(1);
+        ActivityDTO actDto = dto.activities().getFirst();
+        assertThat(actDto.id()).isEqualTo(activityId);
+        assertThat(actDto.mediaId()).isEqualTo(mediaId);
+        assertThat(actDto.mediaName()).isEqualTo("Green Press");
+        assertThat(actDto.themes()).hasSize(1);
+        ThemeDTO themeDto = actDto.themes().iterator().next();
+        assertThat(themeDto.id()).isEqualTo(themeId);
+        assertThat(themeDto.name()).isEqualTo("Biodiversity");
     }
 
     // ── toDto(Activity) ───────────────────────────────────────────────────────
