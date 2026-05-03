@@ -1,6 +1,7 @@
 import React from 'react';
 import type { JournalistListItem } from '../types';
 import { Link, useLocation } from 'react-router-dom';
+import { useI18n } from '../i18n/useI18n';
 import '../styles/JournalistList.css';
 
 interface Props {
@@ -11,10 +12,12 @@ interface Props {
 
 export const JournalistList: React.FC<Props> = ({ journalists, onSort, sort }) => {
   const location = useLocation();
+  const { t } = useI18n();
+  
   if (journalists.length === 0) {
     return (
       <div className="empty-state">
-        <p>Aucun journaliste trouvé.</p>
+        <p>{t('journalistList.empty')}</p>
       </div>
     );
   }
@@ -40,11 +43,11 @@ export const JournalistList: React.FC<Props> = ({ journalists, onSort, sort }) =
                 onClick={() => onSort('lastName')} 
                 className="sort-button"
               >
-                Nom {getSortIndicator('lastName')}
+                {t('journalistList.columnName')} {getSortIndicator('lastName')}
               </button>
             </th>
-            <th className="table-header">Email</th>
-            <th className="table-header">Médias</th>
+            <th className="table-header">{t('journalistList.columnEmail')}</th>
+            <th className="table-header">{t('journalistList.columnMedia')}</th>
           </tr>
         </thead>
         <tbody>

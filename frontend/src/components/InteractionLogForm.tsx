@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useI18n } from '../i18n/useI18n';
 
 interface Props {
   onSubmit: (data: { date: string; description: string; activityId?: string }) => void;
@@ -6,6 +7,7 @@ interface Props {
 }
 
 export const InteractionLogForm: React.FC<Props> = ({ onSubmit, activities }) => {
+  const { t } = useI18n();
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     description: '',
@@ -23,10 +25,10 @@ export const InteractionLogForm: React.FC<Props> = ({ onSubmit, activities }) =>
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 bg-gray-50 p-4 rounded-lg">
-      <h3 className="text-lg font-medium">Log New Interaction</h3>
+      <h3 className="text-lg font-medium">{t('interactionLog.title')}</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Date</label>
+          <label className="block text-sm font-medium text-gray-700">{t('interactionLog.labelDate')}</label>
           <input
             type="date"
             value={formData.date}
@@ -36,13 +38,13 @@ export const InteractionLogForm: React.FC<Props> = ({ onSubmit, activities }) =>
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Related Activity (Optional)</label>
+          <label className="block text-sm font-medium text-gray-700">{t('interactionLog.labelActivity')}</label>
           <select
             value={formData.activityId}
             onChange={(e) => setFormData({ ...formData, activityId: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           >
-            <option value="">None</option>
+            <option value="">{t('interactionLog.activityNone')}</option>
             {activities.map((a) => (
               <option key={a.id} value={a.id}>{a.mediaName}</option>
             ))}
@@ -50,7 +52,7 @@ export const InteractionLogForm: React.FC<Props> = ({ onSubmit, activities }) =>
         </div>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700">Description</label>
+        <label className="block text-sm font-medium text-gray-700">{t('interactionLog.labelDescription')}</label>
         <textarea
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -63,7 +65,7 @@ export const InteractionLogForm: React.FC<Props> = ({ onSubmit, activities }) =>
         type="submit"
         className="bg-indigo-600 text-white rounded-md px-4 py-2 hover:bg-indigo-700"
       >
-        Log Interaction
+        {t('interactionLog.submit')}
       </button>
     </form>
   );

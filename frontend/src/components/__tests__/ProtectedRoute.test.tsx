@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AuthContext } from '../../context/AuthContext';
 import { ProtectedRoute } from '../ProtectedRoute';
 import type { AuthContextValue } from '../../context/AuthContext';
+import { I18nProvider } from '../../i18n/I18nProvider';
 import type { CurrentUser, UserRole } from '../../types';
 
 const createAuthValue = ({
@@ -26,19 +27,21 @@ const renderProtectedRoute = (
   routeElement: React.ReactNode = <ProtectedRoute />,
 ) =>
   render(
-    <AuthContext.Provider value={authValue}>
-      <MemoryRouter initialEntries={[route]}>
-        <Routes>
-          <Route path="/login" element={<div>Login page</div>} />
-          <Route path="/" element={<div>Search page</div>} />
-          <Route element={routeElement}>
-            <Route path="/guide" element={<div>Guide page</div>} />
-            <Route path="/admin/users" element={<div>Admin page</div>} />
-            <Route path="/admin/themes" element={<div>Theme admin page</div>} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
-    </AuthContext.Provider>,
+    <I18nProvider>
+      <AuthContext.Provider value={authValue}>
+        <MemoryRouter initialEntries={[route]}>
+          <Routes>
+            <Route path="/login" element={<div>Login page</div>} />
+            <Route path="/" element={<div>Search page</div>} />
+            <Route element={routeElement}>
+              <Route path="/guide" element={<div>Guide page</div>} />
+              <Route path="/admin/users" element={<div>Admin page</div>} />
+              <Route path="/admin/themes" element={<div>Theme admin page</div>} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>
+    </I18nProvider>,
   );
 
 describe('ProtectedRoute', () => {
@@ -56,7 +59,7 @@ describe('ProtectedRoute', () => {
   it('shows an accessible loading state while auth is bootstrapping', () => {
     renderProtectedRoute(createAuthValue({ isLoading: true }));
 
-    expect(screen.getByRole('status')).toHaveTextContent('Chargement de la session');
+    expect(screen.getByRole('status')).toHaveTextContent('Chargement de la session...');
   });
 
   it('allows authenticated users onto protected routes', () => {
