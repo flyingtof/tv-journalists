@@ -3,6 +3,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ApiError, fetchWithAuth } from '../../api/apiClient';
 import { JournalistProfilePage } from '../JournalistProfilePage';
+import { I18nProvider } from '../../i18n/I18nProvider';
 
 vi.mock('../../api/apiClient', async () => {
   const actual = await vi.importActual<typeof import('../../api/apiClient')>('../../api/apiClient');
@@ -14,11 +15,13 @@ vi.mock('../../api/apiClient', async () => {
 
 const renderProfilePage = () =>
   render(
-    <MemoryRouter initialEntries={['/journalists/123']}>
-      <Routes>
-        <Route path="/journalists/:id" element={<JournalistProfilePage />} />
-      </Routes>
-    </MemoryRouter>,
+    <I18nProvider>
+      <MemoryRouter initialEntries={['/journalists/123']}>
+        <Routes>
+          <Route path="/journalists/:id" element={<JournalistProfilePage />} />
+        </Routes>
+      </MemoryRouter>
+    </I18nProvider>,
   );
 
 describe('JournalistProfilePage', () => {
@@ -40,8 +43,56 @@ describe('JournalistProfilePage', () => {
     renderProfilePage();
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Impossible de charger la fiche journaliste. Veuillez reessayer.',
+      'Impossible de charger la fiche journaliste. Veuillez réessayer.',
     );
+  });
+
+  it('renders loading state with i18n text', () => {
+    vi.mocked(fetchWithAuth).mockImplementation(() => new Promise(() => {}));
+
+    renderProfilePage();
+
+    expect(screen.getByText('Chargement...')).toBeInTheDocument();
+  });
+
+  it('renders contact section title using i18n', async () => {
+    const journalist = {
+      id: '123',
+      firstName: 'John',
+      lastName: 'Doe',
+      globalEmail: 'john@example.com',
+      globalPhone: '+1234567890',
+      activities: [],
+    };
+
+    vi.mocked(fetchWithAuth).mockResolvedValue({
+      json: async () => journalist,
+    } as Response);
+
+    renderProfilePage();
+
+    await screen.findByText('John Doe');
+    expect(screen.getByText('Informations de Contact')).toBeInTheDocument();
+  });
+
+  it('renders activities section title using i18n', async () => {
+    const journalist = {
+      id: '123',
+      firstName: 'Jane',
+      lastName: 'Smith',
+      globalEmail: 'jane@example.com',
+      globalPhone: '+0987654321',
+      activities: [],
+    };
+
+    vi.mocked(fetchWithAuth).mockResolvedValue({
+      json: async () => journalist,
+    } as Response);
+
+    renderProfilePage();
+
+    await screen.findByText('Jane Smith');
+    expect(screen.getByText('Activités Média')).toBeInTheDocument();
   });
 });
 

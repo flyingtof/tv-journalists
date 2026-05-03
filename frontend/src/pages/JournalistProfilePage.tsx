@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import type { JournalistProfile } from '../types';
 import { ApiError, fetchWithAuth, UnauthorizedError } from '../api/apiClient';
+import { useI18n } from '../i18n/useI18n';
 import '../styles/Profile.css';
 
 interface SearchLocationState {
@@ -18,6 +19,7 @@ const isSearchLocationState = (state: unknown): state is SearchLocationState => 
 };
 
 export const JournalistProfilePage: React.FC = () => {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const [journalist, setJournalist] = useState<JournalistProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,9 +38,9 @@ export const JournalistProfilePage: React.FC = () => {
         if (!(error instanceof UnauthorizedError)) {
           console.error('Failed to fetch journalist profile:', error);
           if (error instanceof ApiError && error.status === 404) {
-            setLoadError('Journaliste introuvable');
+            setLoadError(t('journalistProfile.notFound'));
           } else {
-            setLoadError('Impossible de charger la fiche journaliste. Veuillez reessayer.');
+            setLoadError(t('journalistProfile.loadError'));
           }
         }
       } finally {
@@ -47,7 +49,7 @@ export const JournalistProfilePage: React.FC = () => {
     };
 
     fetchJournalist();
-  }, [id]);
+  }, [id, t]);
 
   // trigger entrance animation
   useEffect(() => {
@@ -55,9 +57,9 @@ export const JournalistProfilePage: React.FC = () => {
     return () => clearTimeout(t);
   }, []);
 
-  if (loading) return <div style={{ padding: '24px' }}>Chargement...</div>;
+  if (loading) return <div style={{ padding: '24px' }}>{t('journalistProfile.loading')}</div>;
   if (loadError) return <div style={{ padding: '24px' }} role="alert">{loadError}</div>;
-  if (!journalist) return <div style={{ padding: '24px' }} role="alert">Journaliste introuvable</div>;
+  if (!journalist) return <div style={{ padding: '24px' }} role="alert">{t('journalistProfile.notFound')}</div>;
 
   return (
     <div 
@@ -75,15 +77,15 @@ export const JournalistProfilePage: React.FC = () => {
       </div>
       
       <div className="profile-card">
-        <h2 className="card-title">Informations de Contact</h2>
+        <h2 className="card-title">{t('journalistProfile.contact.title')}</h2>
         <p className="card-text"><strong>Email:</strong> {journalist.globalEmail || 'N/A'}</p>
         <p className="card-text"><strong>Téléphone:</strong> {journalist.globalPhone || 'N/A'}</p>
       </div>
 
       <div className="profile-card">
-        <h2 className="card-title">Activités Média</h2>
+        <h2 className="card-title">{t('journalistProfile.activities.title')}</h2>
         {journalist.activities.length === 0 ? (
-          <p className="no-data">Aucune activité média enregistrée.</p>
+          <p className="no-data">{t('journalistProfile.activities.empty')}</p>
         ) : (
           <ul className="activity-list">
             {journalist.activities.map((activity, index) => (
@@ -115,6 +117,7 @@ export const JournalistProfilePage: React.FC = () => {
 };
 
 const BackButton: React.FC = () => {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -135,8 +138,8 @@ const BackButton: React.FC = () => {
   };
 
   return (
-    <button onClick={handleBack} className="back-button" aria-label="Retour">
-      ← Retour
+    <button onClick={handleBack} className="back-button" aria-label={t('journalistProfile.back')}>
+      ← {t('journalistProfile.back')}
     </button>
   );
 };

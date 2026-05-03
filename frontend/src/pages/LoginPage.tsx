@@ -1,7 +1,10 @@
 import React from 'react';
+import { useI18n } from '../i18n/useI18n';
 import '../styles/Login.css';
 
 export const LoginPage: React.FC = () => {
+  const { t } = useI18n();
+  
   // Spring Security often passes 'error' in query param on failure
   const params = new URLSearchParams(window.location.search);
   const isError = params.has('error');
@@ -17,20 +20,20 @@ export const LoginPage: React.FC = () => {
 
         {isError && (
           <div className="alert alert-error">
-            Identifiants invalides. Veuillez réessayer.
+            {t('login.invalidCredentials')}
           </div>
         )}
 
         {isLogout && (
           <div className="alert alert-success">
-            Vous avez été déconnecté avec succès.
+            {t('login.logoutSuccess')}
           </div>
         )}
 
         <form action="/api/login" method="POST">
           <div className="form-group">
             <label htmlFor="username" className="form-label">
-              Utilisateur
+              {t('login.username')}
             </label>
             <input
               type="text"
@@ -45,7 +48,7 @@ export const LoginPage: React.FC = () => {
 
           <div className="form-group-last">
             <label htmlFor="password" className="form-label">
-              Mot de passe
+              {t('login.password')}
             </label>
             <input
               type="password"
@@ -59,7 +62,7 @@ export const LoginPage: React.FC = () => {
           </div>
 
           <button type="submit" className="login-button">
-            Se connecter
+            {t('login.submit')}
           </button>
         </form>
       </div>
