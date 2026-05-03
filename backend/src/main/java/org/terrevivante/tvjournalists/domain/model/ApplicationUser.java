@@ -3,6 +3,9 @@ package org.terrevivante.tvjournalists.domain.model;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Compte interne pouvant accéder à l'application, avec ses rôles d'autorisation.
+ */
 public record ApplicationUser(
     UUID id,
     String username,

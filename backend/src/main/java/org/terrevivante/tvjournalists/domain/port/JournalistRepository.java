@@ -8,6 +8,9 @@ import org.terrevivante.tvjournalists.domain.query.PageResult;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Port de persistance des profils journalistes et de leur recherche paginée.
+ */
 public interface JournalistRepository {
     Journalist save(Journalist journalist);
     Optional<Journalist> findById(UUID id);

@@ -4,6 +4,11 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Représente la fiche de référence d'un journaliste.
+ *
+ * <p>Un journaliste peut avoir plusieurs activités (médias/roles) rattachées à son profil.
+ */
 public record Journalist(
     UUID id,
     String firstName,
