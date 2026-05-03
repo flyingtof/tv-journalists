@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { JournalistCreate } from '../types';
+import { useI18n } from '../i18n/useI18n';
 
 interface Props {
   onSubmit: (data: JournalistCreate) => void;
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export const JournalistForm: React.FC<Props> = ({ onSubmit, initialData }) => {
+  const { t } = useI18n();
   const [formData, setFormData] = useState<JournalistCreate>(
     initialData || {
       firstName: '',
@@ -29,7 +31,7 @@ export const JournalistForm: React.FC<Props> = ({ onSubmit, initialData }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name</label>
+        <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">{t('journalistForm.labelFirstName')}</label>
         <input
           id="firstName"
           type="text"
@@ -42,7 +44,7 @@ export const JournalistForm: React.FC<Props> = ({ onSubmit, initialData }) => {
         />
       </div>
       <div>
-        <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name</label>
+        <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">{t('journalistForm.labelLastName')}</label>
         <input
           id="lastName"
           type="text"
@@ -55,7 +57,7 @@ export const JournalistForm: React.FC<Props> = ({ onSubmit, initialData }) => {
         />
       </div>
       <div>
-        <label htmlFor="globalEmail" className="block text-sm font-medium text-gray-700">Email</label>
+        <label htmlFor="globalEmail" className="block text-sm font-medium text-gray-700">{t('journalistForm.labelEmail')}</label>
         <input
           id="globalEmail"
           type="email"
@@ -67,7 +69,7 @@ export const JournalistForm: React.FC<Props> = ({ onSubmit, initialData }) => {
         />
       </div>
       <div>
-        <label htmlFor="globalPhone" className="block text-sm font-medium text-gray-700">Phone</label>
+        <label htmlFor="globalPhone" className="block text-sm font-medium text-gray-700">{t('journalistForm.labelPhone')}</label>
         <input
           id="globalPhone"
           type="text"
@@ -82,7 +84,7 @@ export const JournalistForm: React.FC<Props> = ({ onSubmit, initialData }) => {
         type="submit"
         className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
       >
-        Save Profile
+        {t('journalistForm.submit')}
       </button>
     </form>
   );

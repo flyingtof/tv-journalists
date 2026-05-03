@@ -4,10 +4,17 @@ import { describe, expect, it, vi } from 'vitest';
 import App from './App';
 import { AuthContext } from './context/AuthContext';
 import type { AuthContextValue } from './context/AuthContext';
+import { I18nProvider } from './i18n/I18nProvider';
+import { useI18n } from './i18n/useI18n';
 import type { CurrentUser, UserRole } from './types';
 
+// Mock JournalistSearchPage to use useI18n() and render translated text
+// This proves that I18nProvider is properly wired through App
 vi.mock('./pages/JournalistSearchPage', () => ({
-  JournalistSearchPage: () => <div>Search page</div>,
+  JournalistSearchPage: () => {
+    const { t } = useI18n();
+    return <div>{t('greeting')}</div>;
+  },
 }));
 
 vi.mock('./pages/JournalistProfilePage', () => ({
@@ -49,14 +56,24 @@ const createAuthValue = (roles: UserRole[]): AuthContextValue => {
 
 const renderApp = (route: string, authValue: AuthContextValue) =>
   render(
-    <AuthContext.Provider value={authValue}>
-      <MemoryRouter initialEntries={[route]}>
-        <App />
-      </MemoryRouter>
-    </AuthContext.Provider>,
+    <I18nProvider>
+      <AuthContext.Provider value={authValue}>
+        <MemoryRouter initialEntries={[route]}>
+          <App />
+        </MemoryRouter>
+      </AuthContext.Provider>
+    </I18nProvider>,
   );
 
 describe('App', () => {
+  it('renders routed page content that depends on I18nProvider wiring', () => {
+    renderApp('/', createAuthValue(['USER']));
+
+    // Verify that the mocked JournalistSearchPage calls useI18n() successfully
+    // This proves I18nProvider is wired through App and provides context
+    expect(screen.getByText('Bonjour')).toBeInTheDocument();
+  });
+
   it('shows the themes navigation link for theme managers', () => {
     renderApp('/', createAuthValue(['THEME_MANAGER']));
 

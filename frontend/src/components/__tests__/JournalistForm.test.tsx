@@ -1,10 +1,15 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { JournalistForm } from '../JournalistForm';
+import { I18nProvider } from '../../i18n/I18nProvider';
 
 describe('JournalistForm', () => {
   it('renders form fields correctly', () => {
-    render(<JournalistForm onSubmit={vi.fn()} />);
+    render(
+      <I18nProvider>
+        <JournalistForm onSubmit={vi.fn()} />
+      </I18nProvider>
+    );
     
     expect(screen.getByLabelText(/First Name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Last Name/i)).toBeInTheDocument();
@@ -13,7 +18,11 @@ describe('JournalistForm', () => {
   });
 
   it('declares autocomplete metadata on personal contact fields', () => {
-    render(<JournalistForm onSubmit={vi.fn()} />);
+    render(
+      <I18nProvider>
+        <JournalistForm onSubmit={vi.fn()} />
+      </I18nProvider>
+    );
 
     expect(screen.getByLabelText(/First Name/i)).toHaveAttribute('autocomplete', 'given-name');
     expect(screen.getByLabelText(/Last Name/i)).toHaveAttribute('autocomplete', 'family-name');
@@ -23,7 +32,11 @@ describe('JournalistForm', () => {
 
   it('calls onSubmit with form data', () => {
     const handleSubmit = vi.fn();
-    render(<JournalistForm onSubmit={handleSubmit} />);
+    render(
+      <I18nProvider>
+        <JournalistForm onSubmit={handleSubmit} />
+      </I18nProvider>
+    );
     
     fireEvent.change(screen.getByLabelText(/First Name/i), { target: { value: 'John' } });
     fireEvent.change(screen.getByLabelText(/Last Name/i), { target: { value: 'Doe' } });

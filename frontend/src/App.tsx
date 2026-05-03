@@ -8,22 +8,23 @@ import { ThemeAdminPage } from './pages/ThemeAdminPage';
 import { LoginPage } from './pages/LoginPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
+import { useI18n } from './i18n/useI18n';
 import type { UserRole } from './types';
 import './styles/Layout.css';
 
 const THEME_ADMIN_ROLES: UserRole[] = ['ADMIN', 'THEME_MANAGER'];
 const USER_ADMIN_ROLES: UserRole[] = ['ADMIN'];
 
-const getRoleLabel = (role: UserRole) => {
+function getRoleLabel(role: UserRole, t: (key: string) => string): string {
   switch (role) {
     case 'ADMIN':
-      return 'Administrateur';
+      return t('app.role.admin');
     case 'THEME_MANAGER':
-      return 'Gestionnaire des thèmes';
+      return t('app.role.themeManager');
     default:
-      return 'Utilisateur';
+      return t('app.role.user');
   }
-};
+}
 
 // Restores the page the user was on before being redirected to /login
 const AuthRedirect: React.FC = () => {
@@ -46,36 +47,37 @@ function Navigation() {
   const location = useLocation();
   const isLoginPage = location.pathname === '/login';
   const { currentUser, isAuthenticated, isLoading } = useAuth();
+  const { t } = useI18n();
   const canManageThemes = currentUser?.roles.some((role) => THEME_ADMIN_ROLES.includes(role)) ?? false;
   const canManageUsers = currentUser?.roles.some((role) => USER_ADMIN_ROLES.includes(role)) ?? false;
 
   const roleLabels = currentUser?.roles.map((role) => ({
     code: role,
-    label: getRoleLabel(role),
+    label: getRoleLabel(role, t),
   })) ?? [];
 
   return (
     <nav className="main-nav">
       <div className="nav-content">
         <div className="nav-inner">
-          <span className="logo-text">TV Journalists</span>
+          <span className="logo-text">{t('app.logo')}</span>
           <div className="nav-links-group">
             {!isLoginPage && isAuthenticated && (
               <div className="nav-links">
                 <Link to="/" className="nav-link">
-                  Recherche
+                  {t('app.nav.search')}
                 </Link>
                 <Link to="/guide" className="nav-link">
-                  Guide Utilisateur
+                  {t('app.nav.userGuide')}
                 </Link>
                 {canManageUsers && (
                   <Link to="/admin/users" className="nav-link">
-                    Utilisateurs
+                    {t('app.nav.users')}
                   </Link>
                 )}
                 {canManageThemes && (
                   <Link to="/admin/themes" className="nav-link">
-                    Thèmes
+                    {t('app.nav.themes')}
                   </Link>
                 )}
               </div>
@@ -83,7 +85,7 @@ function Navigation() {
 
             {!isLoginPage && (
               <div className="nav-user-panel">
-                {isLoading && <span className="nav-status">Chargement...</span>}
+                {isLoading && <span className="nav-status">{t('app.nav.loading')}</span>}
 
                 {currentUser && (
                   <>
@@ -104,7 +106,7 @@ function Navigation() {
                     </div>
 
                     <a href="/api/logout" className="nav-link">
-                      Se déconnecter
+                      {t('app.nav.logout')}
                     </a>
                   </>
                 )}

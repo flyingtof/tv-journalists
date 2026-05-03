@@ -1,6 +1,7 @@
 import type { PropsWithChildren } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useI18n } from '../i18n/useI18n';
 import type { UserRole } from '../types';
 
 interface ProtectedRouteProps extends PropsWithChildren {
@@ -16,12 +17,13 @@ export const ProtectedRoute = ({
   unauthorizedRedirectTo = '/',
 }: ProtectedRouteProps) => {
   const { currentUser, isAuthenticated, isLoading } = useAuth();
+  const { t } = useI18n();
   const location = useLocation();
 
   if (isLoading) {
     return (
       <div role="status" aria-live="polite">
-        Chargement de la session...
+        {t('protectedRoute.loading')}
       </div>
     );
   }
