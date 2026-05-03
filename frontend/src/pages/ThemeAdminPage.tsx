@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import { ApiError, fetchWithAuth, UnauthorizedError } from '../api/apiClient';
+import { useI18n } from '../i18n/useI18n';
 import '../styles/ThemeAdmin.css';
 import type { Theme } from '../types';
 
@@ -17,6 +18,7 @@ const sortThemesAlphabetically = (themes: Theme[]) =>
 const isConflictError = (error: unknown) => error instanceof ApiError && error.status === 409;
 
 export const ThemeAdminPage = () => {
+  const { t } = useI18n();
   const [themes, setThemes] = useState<Theme[]>([]);
   const [filter, setFilter] = useState('');
   const [selectedThemeId, setSelectedThemeId] = useState<string | null>(null);
@@ -48,13 +50,13 @@ export const ThemeAdminPage = () => {
       }
 
       console.error('Failed to load themes:', error);
-      setLoadError('Impossible de charger les thèmes.');
+      setLoadError(t('themeAdmin.loadError'));
     } finally {
       if (!preserveList) {
         setIsLoading(false);
       }
     }
-  }, [fetchThemes]);
+  }, [fetchThemes, t]);
 
   useEffect(() => {
     void loadThemes();
@@ -131,7 +133,7 @@ export const ThemeAdminPage = () => {
           },
           body: JSON.stringify(payload),
         });
-        setFeedback({ type: 'success', message: 'Thème mis à jour.' });
+        setFeedback({ type: 'success', message: t('themeAdmin.updateSuccess') });
       } else {
         await fetchWithAuth('/api/v1/themes', {
           method: 'POST',
@@ -142,7 +144,7 @@ export const ThemeAdminPage = () => {
         });
         setSelectedThemeId(null);
         setFormState(initialFormState());
-        setFeedback({ type: 'success', message: 'Thème créé.' });
+        setFeedback({ type: 'success', message: t('themeAdmin.createSuccess') });
       }
 
       await loadThemes({ preserveList: true });
@@ -154,7 +156,7 @@ export const ThemeAdminPage = () => {
       console.error(`Failed to ${selectedTheme ? 'update' : 'create'} theme:`, error);
       setFeedback({
         type: 'error',
-        message: selectedTheme ? 'Impossible de mettre à jour le thème.' : 'Impossible de créer le thème.',
+        message: selectedTheme ? t('themeAdmin.updateError') : t('themeAdmin.createError'),
       });
     } finally {
       setIsSubmitting(false);
@@ -166,7 +168,7 @@ export const ThemeAdminPage = () => {
       return;
     }
 
-    if (!window.confirm(`Supprimer définitivement le thème « ${selectedTheme.name} » ?`)) {
+    if (!window.confirm(t('themeAdmin.deleteConfirm', { name: selectedTheme.name }))) {
       return;
     }
 
@@ -180,7 +182,7 @@ export const ThemeAdminPage = () => {
 
       setSelectedThemeId(null);
       setFormState(initialFormState());
-      setFeedback({ type: 'success', message: 'Thème supprimé.' });
+      setFeedback({ type: 'success', message: t('themeAdmin.deleteSuccess') });
       await loadThemes({ preserveList: true });
     } catch (error) {
       if (error instanceof UnauthorizedError) {
@@ -191,8 +193,8 @@ export const ThemeAdminPage = () => {
       setFeedback({
         type: 'error',
         message: isConflictError(error)
-          ? 'Impossible de supprimer ce thème car il est encore utilisé.'
-          : 'Impossible de supprimer le thème.',
+          ? t('themeAdmin.deleteConflictError')
+          : t('themeAdmin.deleteError'),
       });
     } finally {
       setIsSubmitting(false);
@@ -202,25 +204,25 @@ export const ThemeAdminPage = () => {
   return (
     <div className="theme-admin-page">
       <section className="theme-admin-card theme-admin-intro">
-        <h1>Gestion des thèmes</h1>
-        <p>Créez, mettez à jour et retirez les thèmes disponibles pour l’administration éditoriale.</p>
+        <h1>{t('themeAdmin.title')}</h1>
+        <p>{t('themeAdmin.intro')}</p>
       </section>
 
       <div className="theme-admin-layout">
         <section className="theme-admin-card" aria-labelledby="theme-list-title">
           <div className="theme-admin-section-header">
-            <h2 id="theme-list-title">Thèmes existants</h2>
-            <p>Filtrez la liste et choisissez un thème à modifier.</p>
+            <h2 id="theme-list-title">{t('themeAdmin.listSection')}</h2>
+            <p>{t('themeAdmin.listSectionDesc')}</p>
           </div>
 
           <label className="theme-admin-field" htmlFor="theme-filter">
-            <span>Filtrer les thèmes</span>
+            <span>{t('themeAdmin.filterLabel')}</span>
             <input
               id="theme-filter"
               type="search"
               value={filter}
               onChange={handleFilterChange}
-              placeholder="Rechercher un thème"
+              placeholder={t('themeAdmin.filterPlaceholder')}
             />
           </label>
 
@@ -230,16 +232,16 @@ export const ThemeAdminPage = () => {
             </p>
           )}
 
-          {!loadError && isLoading && <p className="theme-admin-empty-state">Chargement des thèmes...</p>}
+          {!loadError && isLoading && <p className="theme-admin-empty-state">{t('themeAdmin.loading')}</p>}
 
           {!loadError && !isLoading && filteredThemes.length === 0 && (
             <p className="theme-admin-empty-state">
-              {filter.trim() ? 'Aucun thème ne correspond à ce filtre.' : 'Aucun thème disponible.'}
+              {filter.trim() ? t('themeAdmin.filterNoMatch') : t('themeAdmin.emptyState')}
             </p>
           )}
 
           {!loadError && !isLoading && filteredThemes.length > 0 && (
-            <ul className="theme-admin-list" aria-label="Liste des thèmes">
+            <ul className="theme-admin-list" aria-label={t('themeAdmin.themeListAriaLabel')}>
               {filteredThemes.map((theme) => {
                 const isSelected = theme.id === selectedThemeId;
 
@@ -248,7 +250,7 @@ export const ThemeAdminPage = () => {
                     <button
                       type="button"
                       className={`theme-admin-list-button${isSelected ? ' theme-admin-list-button-selected' : ''}`}
-                      aria-label={`Sélectionner le thème ${theme.name}`}
+                      aria-label={t('themeAdmin.selectTheme', { name: theme.name })}
                       aria-pressed={isSelected}
                       disabled={isSubmitting}
                       onClick={() => handleThemeSelection(theme)}
@@ -265,24 +267,22 @@ export const ThemeAdminPage = () => {
         <section className="theme-admin-card" aria-labelledby="theme-editor-title">
           <div className="theme-admin-section-header theme-admin-section-header-with-action">
             <div>
-              <h2 id="theme-editor-title">{selectedTheme ? 'Modifier un thème' : 'Créer un thème'}</h2>
+              <h2 id="theme-editor-title">{selectedTheme ? t('themeAdmin.editHeading') : t('themeAdmin.createHeading')}</h2>
               <p>
-                {selectedTheme
-                  ? 'Ajustez le nom du thème sélectionné ou supprimez-le si nécessaire.'
-                  : 'Ajoutez un nouveau thème à la liste disponible.'}
+                {selectedTheme ? t('themeAdmin.editDesc') : t('themeAdmin.createDesc')}
               </p>
             </div>
 
             {selectedTheme && (
               <button type="button" className="theme-admin-secondary-button" onClick={handleCancel}>
-                Annuler
+                {t('themeAdmin.cancelButton')}
               </button>
             )}
           </div>
 
           {selectedTheme && (
             <p className="theme-admin-selection-summary">
-              Thème sélectionné : <strong>{selectedTheme.name}</strong>
+              {t('themeAdmin.selectedSummary', { name: selectedTheme.name })}
             </p>
           )}
 
@@ -297,7 +297,7 @@ export const ThemeAdminPage = () => {
 
           <form className="theme-admin-form" onSubmit={handleSubmit}>
             <label className="theme-admin-field" htmlFor="theme-name">
-              <span>Nom du thème</span>
+              <span>{t('themeAdmin.nameLabel')}</span>
               <input
                 id="theme-name"
                 type="text"
@@ -315,7 +315,7 @@ export const ThemeAdminPage = () => {
                 className="theme-admin-submit"
                 disabled={isSubmitting || !formState.name.trim()}
               >
-                {selectedTheme ? 'Enregistrer le thème' : 'Créer'}
+                {selectedTheme ? t('themeAdmin.updateButton') : t('themeAdmin.createButton')}
               </button>
 
               {selectedTheme && (
@@ -325,7 +325,7 @@ export const ThemeAdminPage = () => {
                   onClick={handleDelete}
                   disabled={isSubmitting}
                 >
-                  Supprimer
+                  {t('themeAdmin.deleteButton')}
                 </button>
               )}
             </div>

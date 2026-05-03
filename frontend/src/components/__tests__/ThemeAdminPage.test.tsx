@@ -1,6 +1,7 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { I18nProvider } from '../../i18n/I18nProvider';
 import { ThemeAdminPage } from '../../pages/ThemeAdminPage';
 import type { Theme } from '../../types';
 
@@ -16,6 +17,14 @@ const jsonResponse = (data: unknown, status = 200): MockResponse => ({
   json: async () => data,
 });
 
+const renderWithI18n = (component: React.ReactElement) => {
+  return render(
+    <I18nProvider>
+      {component}
+    </I18nProvider>,
+  );
+};
+
 describe('ThemeAdminPage', () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -30,7 +39,7 @@ describe('ThemeAdminPage', () => {
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(themes)));
 
-    render(<ThemeAdminPage />);
+    renderWithI18n(<ThemeAdminPage />);
 
     await screen.findByRole('button', { name: 'Sélectionner le thème Actualités' });
 
@@ -65,7 +74,7 @@ describe('ThemeAdminPage', () => {
 
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<ThemeAdminPage />);
+    renderWithI18n(<ThemeAdminPage />);
 
     await screen.findByRole('button', { name: 'Sélectionner le thème Culture' });
 
@@ -127,7 +136,7 @@ describe('ThemeAdminPage', () => {
 
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<ThemeAdminPage />);
+    renderWithI18n(<ThemeAdminPage />);
 
     await screen.findByRole('button', { name: 'Sélectionner le thème Culture' });
 
@@ -171,7 +180,7 @@ describe('ThemeAdminPage', () => {
 
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<ThemeAdminPage />);
+    renderWithI18n(<ThemeAdminPage />);
 
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', { name: 'Sélectionner le thème Culture' }));
@@ -226,7 +235,7 @@ describe('ThemeAdminPage', () => {
 
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<ThemeAdminPage />);
+    renderWithI18n(<ThemeAdminPage />);
 
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', { name: 'Sélectionner le thème Culture' }));
@@ -272,7 +281,7 @@ describe('ThemeAdminPage', () => {
     vi.stubGlobal('fetch', fetchMock);
     vi.spyOn(window, 'confirm').mockReturnValue(true);
 
-    render(<ThemeAdminPage />);
+    renderWithI18n(<ThemeAdminPage />);
 
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', { name: 'Sélectionner le thème Culture' }));
@@ -331,7 +340,7 @@ describe('ThemeAdminPage', () => {
     vi.stubGlobal('fetch', fetchMock);
     vi.spyOn(window, 'confirm').mockReturnValue(true);
 
-    render(<ThemeAdminPage />);
+    renderWithI18n(<ThemeAdminPage />);
 
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', { name: 'Sélectionner le thème Culture' }));
@@ -365,7 +374,7 @@ describe('ThemeAdminPage', () => {
     vi.stubGlobal('fetch', fetchMock);
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
 
-    render(<ThemeAdminPage />);
+    renderWithI18n(<ThemeAdminPage />);
 
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', { name: 'Sélectionner le thème Culture' }));
@@ -392,7 +401,7 @@ describe('ThemeAdminPage', () => {
     vi.stubGlobal('fetch', fetchMock);
     vi.spyOn(window, 'confirm').mockReturnValue(true);
 
-    render(<ThemeAdminPage />);
+    renderWithI18n(<ThemeAdminPage />);
 
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', { name: 'Sélectionner le thème Culture' }));
@@ -402,4 +411,226 @@ describe('ThemeAdminPage', () => {
       'Impossible de supprimer ce thème car il est encore utilisé.',
     );
   });
+
+  it('displays page title and section headings in translated UI', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse([]));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<ThemeAdminPage />);
+
+    expect(await screen.findByRole('heading', { name: 'Gestion des thèmes' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Thèmes existants' })).toBeInTheDocument();
+  });
+
+  it('displays filter input with translated label and placeholder', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse([]));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<ThemeAdminPage />);
+
+    const filterInput = await screen.findByRole('searchbox');
+    expect(filterInput).toHaveAttribute('placeholder', 'Rechercher un thème');
+  });
+
+  it('displays create button with translated label', async () => {
+    const themes: Theme[] = [{ id: '1', name: 'Culture' }];
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(themes));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<ThemeAdminPage />);
+
+    await screen.findByRole('button', { name: 'Sélectionner le thème Culture' });
+    expect(screen.getByRole('button', { name: 'Créer' })).toBeInTheDocument();
+  });
+
+  it('displays empty state with translated text when no themes exist', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse([]));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<ThemeAdminPage />);
+
+    expect(await screen.findByText('Aucun thème disponible.')).toBeInTheDocument();
+  });
+
+  it('displays error alert with translated message when loading themes fails', async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new Error('Network error'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<ThemeAdminPage />);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Impossible de charger les thèmes.');
+  });
+
+  it('displays translated create success message', async () => {
+    const initialThemes: Theme[] = [{ id: '1', name: 'Culture' }];
+    const refreshedThemes: Theme[] = [
+      { id: '2', name: 'Analyse' },
+      ...initialThemes,
+    ];
+    let resolveCreate: ((value: MockResponse) => void) | null = null;
+    const createResponse = new Promise<MockResponse>((resolve) => {
+      resolveCreate = resolve;
+    });
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(initialThemes))
+      .mockImplementationOnce(() => createResponse)
+      .mockResolvedValueOnce(jsonResponse(refreshedThemes));
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<ThemeAdminPage />);
+
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText('Nom du thème'), 'Analyse');
+    await user.click(screen.getByRole('button', { name: 'Créer' }));
+
+    await act(async () => {
+      resolveCreate?.(jsonResponse({ id: '2', name: 'Analyse' }, 201));
+    });
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Thème créé.');
+  });
+
+  it('displays translated update success message', async () => {
+    const theme: Theme = { id: '1', name: 'Culture' };
+    const updatedTheme: Theme = { id: '1', name: 'Culture Générale' };
+    let resolveUpdate: ((value: MockResponse) => void) | null = null;
+    const updateResponse = new Promise<MockResponse>((resolve) => {
+      resolveUpdate = resolve;
+    });
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse([theme]))
+      .mockImplementationOnce(() => updateResponse)
+      .mockResolvedValueOnce(jsonResponse([updatedTheme]));
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<ThemeAdminPage />);
+
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Sélectionner le thème Culture' }));
+    await user.clear(screen.getByLabelText('Nom du thème'));
+    await user.type(screen.getByLabelText('Nom du thème'), 'Culture Générale');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer le thème' }));
+
+    await act(async () => {
+      resolveUpdate?.(jsonResponse({}));
+    });
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Thème mis à jour.');
+  });
+
+  it('displays translated delete success message', async () => {
+    const theme: Theme = { id: '1', name: 'Culture' };
+    let resolveDelete: ((value: MockResponse) => void) | null = null;
+    const deleteResponse = new Promise<MockResponse>((resolve) => {
+      resolveDelete = resolve;
+    });
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse([theme]))
+      .mockImplementationOnce(() => deleteResponse)
+      .mockResolvedValueOnce(jsonResponse([]));
+
+    vi.stubGlobal('fetch', fetchMock);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    renderWithI18n(<ThemeAdminPage />);
+
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Sélectionner le thème Culture' }));
+    await user.click(screen.getByRole('button', { name: 'Supprimer' }));
+
+    await act(async () => {
+      resolveDelete?.(jsonResponse({}));
+    });
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Thème supprimé.');
+  });
+
+  it('displays translated theme creation form', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse([]));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<ThemeAdminPage />);
+
+    expect(await screen.findByRole('heading', { name: 'Créer un thème' })).toBeInTheDocument();
+    expect(screen.getByText('Ajoutez un nouveau thème à la liste disponible.')).toBeInTheDocument();
+    expect(screen.getByLabelText('Nom du thème')).toBeInTheDocument();
+  });
+
+  it('displays translated theme editing form when theme is selected', async () => {
+    const theme: Theme = { id: '1', name: 'Culture' };
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse([theme]));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<ThemeAdminPage />);
+
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Sélectionner le thème Culture' }));
+
+    expect(screen.getByRole('heading', { name: 'Modifier un thème' })).toBeInTheDocument();
+    expect(screen.getByText('Ajustez le nom du thème sélectionné ou supprimez-le si nécessaire.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Annuler' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Supprimer' })).toBeInTheDocument();
+  });
+
+  it('displays translated theme creation error message', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse([]))
+      .mockRejectedValueOnce(new Error('API error'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<ThemeAdminPage />);
+
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText('Nom du thème'), 'Analyse');
+    await user.click(screen.getByRole('button', { name: 'Créer' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Impossible de créer le thème.');
+  });
+
+  it('displays translated theme update error message', async () => {
+    const theme: Theme = { id: '1', name: 'Culture' };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse([theme]))
+      .mockRejectedValueOnce(new Error('API error'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderWithI18n(<ThemeAdminPage />);
+
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Sélectionner le thème Culture' }));
+    await user.clear(screen.getByLabelText('Nom du thème'));
+    await user.type(screen.getByLabelText('Nom du thème'), 'Culture Générale');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer le thème' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Impossible de mettre à jour le thème.');
+  });
+
+  it('displays translated theme delete error message', async () => {
+    const theme: Theme = { id: '1', name: 'Culture' };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse([theme]))
+      .mockRejectedValueOnce(new Error('API error'));
+    vi.stubGlobal('fetch', fetchMock);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    renderWithI18n(<ThemeAdminPage />);
+
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Sélectionner le thème Culture' }));
+    await user.click(screen.getByRole('button', { name: 'Supprimer' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Impossible de supprimer le thème.');
+  });
 });
+

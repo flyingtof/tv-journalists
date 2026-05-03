@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { fetchWithAuth, UnauthorizedError } from '../api/apiClient';
+import { useI18n } from '../i18n/useI18n';
 import '../styles/UserAdmin.css';
 import type { UserRole, UserSummary } from '../types';
 
@@ -18,12 +19,6 @@ interface EditUserFormState {
   enabled: boolean;
   roles: UserRole[];
 }
-
-const ROLE_OPTIONS: Array<{ value: UserRole; label: string }> = [
-  { value: 'USER', label: 'Utilisateur standard' },
-  { value: 'THEME_MANAGER', label: 'Gestionnaire des thèmes' },
-  { value: 'ADMIN', label: 'Administrateur' },
-];
 
 const initialFormState = (): CreateUserFormState => ({
   username: '',
@@ -51,6 +46,14 @@ const deriveEditFormState = (user: UserSummary): EditUserFormState => ({
 });
 
 export const UserAdminPage = () => {
+  const { t } = useI18n();
+  
+  const roleOptions: Array<{ value: UserRole; label: string }> = [
+    { value: 'USER', label: t('userAdmin.roleUser') },
+    { value: 'THEME_MANAGER', label: t('userAdmin.roleThemeManager') },
+    { value: 'ADMIN', label: t('userAdmin.roleAdmin') },
+  ];
+  
   const [users, setUsers] = useState<UserSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -92,7 +95,7 @@ export const UserAdminPage = () => {
 
         console.error('Failed to load users:', error);
         if (isMounted) {
-          setLoadError('Impossible de charger les utilisateurs.');
+          setLoadError(t('userAdmin.loadError'));
         }
       } finally {
         if (isMounted) {
@@ -106,7 +109,7 @@ export const UserAdminPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [fetchUsers]);
+  }, [fetchUsers, t]);
 
   const loadUsers = useCallback(async () => {
     setIsLoading(true);
@@ -121,11 +124,11 @@ export const UserAdminPage = () => {
       }
 
       console.error('Failed to load users:', error);
-      setLoadError('Impossible de charger les utilisateurs.');
+      setLoadError(t('userAdmin.loadError'));
     } finally {
       setIsLoading(false);
     }
-  }, [fetchUsers]);
+  }, [fetchUsers, t]);
 
   const sortedUsers = useMemo(
     () => [...users].sort((left, right) => left.username.localeCompare(right.username)),
@@ -282,7 +285,7 @@ export const UserAdminPage = () => {
         }),
       });
 
-      setSubmitSuccess('Utilisateur créé.');
+      setSubmitSuccess(t('userAdmin.createSuccess'));
       setFormState(initialFormState());
       await loadUsers();
     } catch (error) {
@@ -291,7 +294,7 @@ export const UserAdminPage = () => {
       }
 
       console.error('Failed to create user:', error);
-      setSubmitError('Impossible de créer l’utilisateur.');
+      setSubmitError(t('userAdmin.createError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -322,7 +325,7 @@ export const UserAdminPage = () => {
         }),
       });
 
-      setUpdateSuccess('Utilisateur mis à jour.');
+      setUpdateSuccess(t('userAdmin.updateSuccess'));
       await loadUsers();
     } catch (error) {
       if (error instanceof UnauthorizedError) {
@@ -330,7 +333,7 @@ export const UserAdminPage = () => {
       }
 
       console.error('Failed to update user:', error);
-      setUpdateError('Impossible de mettre à jour l’utilisateur.');
+      setUpdateError(t('userAdmin.updateError'));
     } finally {
       setIsUpdatingUser(false);
     }
@@ -357,7 +360,7 @@ export const UserAdminPage = () => {
       });
 
       setResetPassword('');
-      setResetPasswordSuccess('Mot de passe réinitialisé.');
+      setResetPasswordSuccess(t('userAdmin.resetSuccess'));
       await loadUsers();
     } catch (error) {
       if (error instanceof UnauthorizedError) {
@@ -365,7 +368,7 @@ export const UserAdminPage = () => {
       }
 
       console.error('Failed to reset user password:', error);
-      setResetPasswordError('Impossible de réinitialiser le mot de passe.');
+      setResetPasswordError(t('userAdmin.resetError'));
     } finally {
       setIsResettingPassword(false);
     }
@@ -374,20 +377,20 @@ export const UserAdminPage = () => {
   return (
     <div className="user-admin-page">
       <section className="user-admin-card user-admin-intro">
-        <h1>Gestion des utilisateurs</h1>
-        <p>Créez un compte et consultez rapidement les accès existants.</p>
+        <h1>{t('userAdmin.title')}</h1>
+        <p>{t('userAdmin.intro')}</p>
       </section>
 
       <div className="user-admin-layout">
         <section className="user-admin-card" aria-labelledby="create-user-title">
           <div className="user-admin-section-header">
-            <h2 id="create-user-title">Créer un utilisateur</h2>
-            <p>Définissez un identifiant, un mot de passe initial et les rôles à attribuer.</p>
+            <h2 id="create-user-title">{t('userAdmin.createSection')}</h2>
+            <p>{t('userAdmin.createSectionDesc')}</p>
           </div>
 
           <form className="user-admin-form" onSubmit={handleSubmit}>
             <label className="user-admin-field">
-              <span>Nom d’utilisateur</span>
+              <span>{t('userAdmin.usernameLabel')}</span>
               <input
                 type="text"
                 name="username"
@@ -399,7 +402,7 @@ export const UserAdminPage = () => {
             </label>
 
             <label className="user-admin-field">
-              <span>Mot de passe initial</span>
+              <span>{t('userAdmin.passwordLabel')}</span>
               <input
                 type="password"
                 name="password"
@@ -412,7 +415,7 @@ export const UserAdminPage = () => {
 
             <div className="user-admin-form-grid">
               <label className="user-admin-field">
-                <span>Prénom</span>
+                <span>{t('userAdmin.firstNameLabel')}</span>
                 <input
                   type="text"
                   name="firstName"
@@ -424,7 +427,7 @@ export const UserAdminPage = () => {
               </label>
 
               <label className="user-admin-field">
-                <span>Nom</span>
+                <span>{t('userAdmin.lastNameLabel')}</span>
                 <input
                   type="text"
                   name="lastName"
@@ -437,9 +440,9 @@ export const UserAdminPage = () => {
             </div>
 
             <fieldset className="user-admin-fieldset">
-              <legend>Rôles</legend>
+              <legend>{t('userAdmin.rolesLegend')}</legend>
               <div className="user-admin-checkbox-list">
-                {ROLE_OPTIONS.map((roleOption) => (
+                {roleOptions.map((roleOption) => (
                   <label key={roleOption.value} className="user-admin-checkbox">
                     <input
                       type="checkbox"
@@ -459,7 +462,7 @@ export const UserAdminPage = () => {
                 checked={formState.enabled}
                 onChange={handleInputChange}
               />
-              <span>Compte actif</span>
+              <span>{t('userAdmin.enabledLabel')}</span>
             </label>
 
             {submitSuccess && (
@@ -475,15 +478,15 @@ export const UserAdminPage = () => {
             )}
 
             <button type="submit" className="user-admin-submit" disabled={isSubmitting || formState.roles.length === 0}>
-              {isSubmitting ? 'Création…' : 'Créer l’utilisateur'}
+              {isSubmitting ? t('userAdmin.createButtonLoading') : t('userAdmin.createButton')}
             </button>
           </form>
         </section>
 
         <section className="user-admin-card" aria-labelledby="users-list-title">
           <div className="user-admin-section-header">
-            <h2 id="users-list-title">Utilisateurs existants</h2>
-            <p>{sortedUsers.length} compte(s) affiché(s).</p>
+            <h2 id="users-list-title">{t('userAdmin.usersSection')}</h2>
+            <p>{t('userAdmin.userCount', { count: sortedUsers.length })}</p>
           </div>
 
           {loadError && (
@@ -494,19 +497,19 @@ export const UserAdminPage = () => {
 
           {isLoading ? (
             <p className="user-admin-empty-state" role="status">
-              Chargement des utilisateurs…
+              {t('userAdmin.loading')}
             </p>
           ) : sortedUsers.length === 0 ? (
-            <p className="user-admin-empty-state">Aucun utilisateur trouvé.</p>
+            <p className="user-admin-empty-state">{t('userAdmin.emptyState')}</p>
           ) : (
             <div className="user-admin-table-wrapper">
               <table className="user-admin-table">
                 <thead>
                   <tr>
-                    <th scope="col">Utilisateur</th>
-                    <th scope="col">Rôles</th>
-                    <th scope="col">Statut</th>
-                    <th scope="col">Actions</th>
+                    <th scope="col">{t('userAdmin.columnUser')}</th>
+                    <th scope="col">{t('userAdmin.columnRoles')}</th>
+                    <th scope="col">{t('userAdmin.columnStatus')}</th>
+                    <th scope="col">{t('userAdmin.columnActions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -518,7 +521,7 @@ export const UserAdminPage = () => {
                         <span
                           className={`user-admin-status ${user.enabled ? 'user-admin-status-enabled' : 'user-admin-status-disabled'}`}
                         >
-                          {user.enabled ? 'Actif' : 'Désactivé'}
+                          {user.enabled ? t('userAdmin.statusEnabled') : t('userAdmin.statusDisabled')}
                         </span>
                       </td>
                       <td className="user-admin-table-actions">
@@ -526,9 +529,9 @@ export const UserAdminPage = () => {
                           type="button"
                           className="user-admin-action-button"
                           onClick={() => openEditPanel(user)}
-                          aria-label={`Modifier ${user.username}`}
+                          aria-label={`${t('userAdmin.editButton')} ${user.username}`}
                         >
-                          Modifier
+                          {t('userAdmin.editButton')}
                         </button>
                       </td>
                     </tr>
@@ -549,23 +552,23 @@ export const UserAdminPage = () => {
         >
           <div className="user-admin-section-header user-admin-section-header-with-action">
             <div>
-              <h2 id="user-admin-edit-title">Modifier l’utilisateur</h2>
-              <p>Modifiez les informations de {selectedUser.username} puis enregistrez les changements.</p>
+              <h2 id="user-admin-edit-title">{t('userAdmin.editTitle')}</h2>
+              <p>{t('userAdmin.editDesc', { username: selectedUser.username })}</p>
             </div>
             <button
               type="button"
               className="user-admin-close-button"
               onClick={closeEditPanel}
-              aria-label="Fermer le panneau d’édition"
+              aria-label={t('userAdmin.closePanelLabel')}
             >
-              Fermer
+              {t('userAdmin.closeButton')}
             </button>
           </div>
 
           <form className="user-admin-form" onSubmit={handleUpdateSubmit}>
             <div className="user-admin-form-grid">
               <label className="user-admin-field">
-                <span>Prénom</span>
+                <span>{t('userAdmin.firstNameLabel')}</span>
                 <input
                   ref={firstEditFieldRef}
                   type="text"
@@ -578,7 +581,7 @@ export const UserAdminPage = () => {
               </label>
 
               <label className="user-admin-field">
-                <span>Nom</span>
+                <span>{t('userAdmin.lastNameLabel')}</span>
                 <input
                   type="text"
                   name="lastName"
@@ -591,9 +594,9 @@ export const UserAdminPage = () => {
             </div>
 
             <fieldset className="user-admin-fieldset">
-              <legend>Rôles</legend>
+              <legend>{t('userAdmin.rolesLegend')}</legend>
               <div className="user-admin-checkbox-list">
-                {ROLE_OPTIONS.map((roleOption) => (
+                {roleOptions.map((roleOption) => (
                   <label key={roleOption.value} className="user-admin-checkbox">
                     <input
                       type="checkbox"
@@ -613,7 +616,7 @@ export const UserAdminPage = () => {
                 checked={editFormState.enabled}
                 onChange={handleEditInputChange}
               />
-              <span>Compte actif</span>
+              <span>{t('userAdmin.enabledLabel')}</span>
             </label>
 
             {updateSuccess && (
@@ -633,15 +636,15 @@ export const UserAdminPage = () => {
               className="user-admin-submit"
               disabled={isUpdatingUser || editFormState.roles.length === 0}
             >
-              Enregistrer les modifications
+              {t('userAdmin.updateButton')}
             </button>
           </form>
 
           <form className="user-admin-reset-form" onSubmit={handlePasswordResetSubmit}>
-            <h3 className="user-admin-reset-title">Réinitialiser le mot de passe</h3>
+            <h3 className="user-admin-reset-title">{t('userAdmin.resetPasswordSection')}</h3>
 
             <label className="user-admin-field">
-              <span>Nouveau mot de passe</span>
+              <span>{t('userAdmin.newPasswordLabel')}</span>
               <input
                 type="password"
                 value={resetPassword}
@@ -665,7 +668,7 @@ export const UserAdminPage = () => {
             )}
 
             <button type="submit" className="user-admin-submit" disabled={isResettingPassword || resetPassword.length === 0}>
-              {isResettingPassword ? 'Réinitialisation…' : 'Réinitialiser le mot de passe'}
+              {isResettingPassword ? t('userAdmin.resetPasswordButtonLoading') : t('userAdmin.resetPasswordButton')}
             </button>
           </form>
         </section>
