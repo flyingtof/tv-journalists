@@ -12,8 +12,8 @@ describe('main.tsx bootstrap', () => {
     
     vi.doMock('react-dom/client', () => ({
       createRoot: () => ({
-        render: (element: React.ReactElement) => {
-          renderedElement = element;
+        render: (element: unknown) => {
+          renderedElement = element as React.ReactElement;
         },
       }),
     }));
@@ -29,26 +29,26 @@ describe('main.tsx bootstrap', () => {
     expect(renderedElement).not.toBeNull();
 
     // Check that the rendered element is StrictMode
-    expect(renderedElement?.type).toBe(StrictMode);
+    expect((renderedElement as unknown as { type: unknown })?.type).toBe(StrictMode);
 
     // Navigate down the tree: StrictMode > BrowserRouter > I18nProvider > AuthProvider > App
-    const strictModeChildren = (renderedElement as React.ReactElement)?.props?.children;
+    const strictModeChildren = (renderedElement as unknown as { props?: { children?: unknown } })?.props?.children;
     expect(strictModeChildren).toBeDefined();
 
     // BrowserRouter is the first child
     const browserRouter = strictModeChildren;
-    expect(browserRouter?.type?.name).toBe('BrowserRouter');
+    expect((browserRouter as unknown as { type?: { name?: string } })?.type?.name).toBe('BrowserRouter');
 
     // I18nProvider is the child of BrowserRouter
-    const i18nProvider = browserRouter?.props?.children;
-    expect(i18nProvider?.type?.name).toBe('I18nProvider');
+    const i18nProvider = (browserRouter as unknown as { props?: { children?: unknown } })?.props?.children;
+    expect((i18nProvider as unknown as { type?: { name?: string } })?.type?.name).toBe('I18nProvider');
 
     // AuthProvider is the child of I18nProvider
-    const authProvider = i18nProvider?.props?.children;
-    expect(authProvider?.type?.name).toBe('AuthProvider');
+    const authProvider = (i18nProvider as unknown as { props?: { children?: unknown } })?.props?.children;
+    expect((authProvider as unknown as { type?: { name?: string } })?.type?.name).toBe('AuthProvider');
 
     // App is the child of AuthProvider
-    const app = authProvider?.props?.children;
-    expect(app?.type?.name).toBe('App');
+    const app = (authProvider as unknown as { props?: { children?: unknown } })?.props?.children;
+    expect((app as unknown as { type?: { name?: string } })?.type?.name).toBe('App');
   });
 });
