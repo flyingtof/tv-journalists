@@ -2,6 +2,9 @@ package org.terrevivante.tvjournalists.domain.query;
 
 import java.util.List;
 
+/**
+ * Représente un lot paginé de résultats dans un format neutre vis-à-vis des frameworks.
+ */
 public record PageResult<T>(
     List<T> content,
     long totalElements,

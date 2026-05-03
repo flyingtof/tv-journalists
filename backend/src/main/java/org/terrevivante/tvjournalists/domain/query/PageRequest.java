@@ -2,6 +2,9 @@ package org.terrevivante.tvjournalists.domain.query;
 
 import java.util.List;
 
+/**
+ * Paramètres de lecture paginée exprimés en termes métier (page, taille, tri).
+ */
 public record PageRequest(
     int page,
     int size,

@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Port de persistance des comptes utilisateurs et de leurs rôles.
+ */
 public interface ApplicationUserRepository {
     ApplicationUser save(ApplicationUser user);
     Optional<ApplicationUser> findById(UUID id);

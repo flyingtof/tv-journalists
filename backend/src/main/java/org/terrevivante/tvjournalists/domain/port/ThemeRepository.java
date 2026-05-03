@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Port de gestion du référentiel des thèmes éditoriaux.
+ */
 public interface ThemeRepository {
     List<Theme> findAll();
 
