@@ -13,7 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.terrevivante.tvjournalists.api.dto.InteractionCreateDTO;
 import org.terrevivante.tvjournalists.api.dto.InteractionDTO;
 import org.terrevivante.tvjournalists.api.dto.JournalistCreateDTO;
-import org.terrevivante.tvjournalists.api.dto.JournalistDTO;
+import org.terrevivante.tvjournalists.api.dto.JournalistListItemDTO;
+import org.terrevivante.tvjournalists.api.dto.JournalistProfileDTO;
 import org.terrevivante.tvjournalists.api.dto.PageResponse;
 import org.terrevivante.tvjournalists.api.mapper.JournalistMapper;
 import org.terrevivante.tvjournalists.application.readmodel.JournalistListItemView;
@@ -57,19 +58,19 @@ public class JournalistController {
     }
 
     @PostMapping
-    public ResponseEntity<JournalistDTO> createJournalist(@RequestBody JournalistCreateDTO journalistCreateDTO) {
+    public ResponseEntity<JournalistProfileDTO> createJournalist(@RequestBody JournalistCreateDTO journalistCreateDTO) {
         Journalist savedJournalist = createJournalistUseCase.create(journalistMapper.toCommand(journalistCreateDTO));
-        return ResponseEntity.status(HttpStatus.CREATED).body(journalistMapper.toDto(savedJournalist));
+        return ResponseEntity.status(HttpStatus.CREATED).body(journalistMapper.toProfileDto(savedJournalist));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<JournalistDTO> getJournalist(@PathVariable UUID id) {
+    public ResponseEntity<JournalistProfileDTO> getJournalist(@PathVariable UUID id) {
         JournalistProfileView journalist = getJournalistProfileUseCase.getById(id);
-        return ResponseEntity.ok(journalistMapper.toDto(journalist));
+        return ResponseEntity.ok(journalistMapper.toProfileDto(journalist));
     }
 
     @GetMapping
-    public ResponseEntity<PageResponse<JournalistDTO>> searchJournalists(
+    public ResponseEntity<PageResponse<JournalistListItemDTO>> searchJournalists(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) List<String> media,
             @RequestParam(required = false) List<String> themes,
@@ -87,8 +88,8 @@ public class JournalistController {
             rawSort != null ? Arrays.asList(rawSort) : List.of());
         PageRequest pageRequest = new PageRequest(page, size, sortOrders);
         PageResult<JournalistListItemView> results = searchJournalistListUseCase.search(criteria, pageRequest);
-        PageResult<JournalistDTO> dtoResults = new PageResult<>(
-            results.content().stream().map(item -> journalistMapper.toDto(item)).toList(),
+        PageResult<JournalistListItemDTO> dtoResults = new PageResult<>(
+            results.content().stream().map(journalistMapper::toListItemDto).toList(),
             results.totalElements(),
             results.page(),
             results.size()
@@ -111,9 +112,18 @@ public class JournalistController {
                     throw new IllegalArgumentException(
                         "Unknown sort field '" + field + "'. Allowed: " + ALLOWED_SORT_FIELDS);
                 }
-                SortDirection direction = (parts.length > 1 && "desc".equalsIgnoreCase(parts[1].trim()))
-                    ? SortDirection.DESC
-                    : SortDirection.ASC;
+                SortDirection direction = SortDirection.ASC;
+                if (parts.length > 1) {
+                    String rawDirection = parts[1].trim();
+                    if (rawDirection.isEmpty() || "asc".equalsIgnoreCase(rawDirection)) {
+                        direction = SortDirection.ASC;
+                    } else if ("desc".equalsIgnoreCase(rawDirection)) {
+                        direction = SortDirection.DESC;
+                    } else {
+                        throw new IllegalArgumentException(
+                            "Unknown sort direction '" + rawDirection + "'. Allowed: asc, desc");
+                    }
+                }
                 return new SortOrder(field, direction);
             })
             .toList();

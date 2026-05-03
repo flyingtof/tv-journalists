@@ -12,6 +12,7 @@ import type { UserRole } from './types';
 import './styles/Layout.css';
 
 const THEME_ADMIN_ROLES: UserRole[] = ['ADMIN', 'THEME_MANAGER'];
+const USER_ADMIN_ROLES: UserRole[] = ['ADMIN'];
 
 const getRoleLabel = (role: UserRole) => {
   switch (role) {
@@ -46,6 +47,7 @@ function Navigation() {
   const isLoginPage = location.pathname === '/login';
   const { currentUser, isAuthenticated, isLoading } = useAuth();
   const canManageThemes = currentUser?.roles.some((role) => THEME_ADMIN_ROLES.includes(role)) ?? false;
+  const canManageUsers = currentUser?.roles.some((role) => USER_ADMIN_ROLES.includes(role)) ?? false;
 
   const roleLabels = currentUser?.roles.map((role) => ({
     code: role,
@@ -66,7 +68,7 @@ function Navigation() {
                 <Link to="/guide" className="nav-link">
                   Guide Utilisateur
                 </Link>
-                {currentUser?.roles.includes('ADMIN') && (
+                {canManageUsers && (
                   <Link to="/admin/users" className="nav-link">
                     Utilisateurs
                   </Link>
@@ -128,7 +130,7 @@ function App() {
             <Route path="/" element={<JournalistSearchPage />} />
             <Route path="/journalists/:id" element={<JournalistProfilePage />} />
             <Route path="/guide" element={<UserGuidePage />} />
-            <Route element={<ProtectedRoute requiredRoles={['ADMIN']} />}>
+            <Route element={<ProtectedRoute requiredRoles={USER_ADMIN_ROLES} />}>
               <Route path="/admin/users" element={<UserAdminPage />} />
             </Route>
             <Route element={<ProtectedRoute requiredRoles={THEME_ADMIN_ROLES} />}>

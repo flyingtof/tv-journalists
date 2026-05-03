@@ -8,11 +8,10 @@ public record JournalistListItemView(
     String firstName,
     String lastName,
     String globalEmail,
-    String globalPhone,
-    List<ActivityView> activities
+    List<String> mediaNames
 ) {
     public JournalistListItemView {
-        activities = activities == null ? List.of() : List.copyOf(activities);
+        mediaNames = mediaNames == null ? List.of() : List.copyOf(mediaNames);
     }
 }
 

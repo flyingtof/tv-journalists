@@ -3,11 +3,12 @@ package org.terrevivante.tvjournalists.api.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.terrevivante.tvjournalists.api.dto.ActivityDTO;
 import org.terrevivante.tvjournalists.api.dto.InteractionCreateDTO;
 import org.terrevivante.tvjournalists.api.dto.InteractionDTO;
 import org.terrevivante.tvjournalists.api.dto.JournalistCreateDTO;
-import org.terrevivante.tvjournalists.api.dto.JournalistDTO;
+import org.terrevivante.tvjournalists.api.dto.JournalistListItemDTO;
+import org.terrevivante.tvjournalists.api.dto.JournalistProfileActivityDTO;
+import org.terrevivante.tvjournalists.api.dto.JournalistProfileDTO;
 import org.terrevivante.tvjournalists.api.dto.ThemeDTO;
 import org.terrevivante.tvjournalists.application.command.CreateJournalistCommand;
 import org.terrevivante.tvjournalists.application.command.LogInteractionCommand;
@@ -30,25 +31,20 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public interface JournalistMapper {
 
-    JournalistDTO toDto(Journalist journalist);
+    JournalistProfileDTO toProfileDto(Journalist journalist);
 
-    JournalistDTO toDto(JournalistListItemView journalist);
+    JournalistListItemDTO toListItemDto(JournalistListItemView journalist);
 
-    JournalistDTO toDto(JournalistProfileView journalist);
+    JournalistProfileDTO toProfileDto(JournalistProfileView journalist);
 
-    @Mapping(source = "media.id", target = "mediaId")
     @Mapping(source = "media.name", target = "mediaName")
     @Mapping(source = "themes", target = "themes", qualifiedByName = "themesToOrderedSet")
-    ActivityDTO toDto(Activity activity);
+    JournalistProfileActivityDTO toProfileActivityDto(Activity activity);
 
-    @Mapping(source = "media.id", target = "mediaId")
     @Mapping(source = "media.name", target = "mediaName")
     @Mapping(source = "themes", target = "themes", qualifiedByName = "themeViewsToOrderedSet")
-    ActivityDTO toDto(ActivityView activity);
+    JournalistProfileActivityDTO toProfileActivityDto(ActivityView activity);
 
-    ThemeDTO toDto(Theme theme);
-
-    ThemeDTO toDto(ThemeView theme);
 
     InteractionDTO toDto(InteractionLog log);
 
@@ -71,7 +67,7 @@ public interface JournalistMapper {
     default Set<ThemeDTO> themesToOrderedSet(List<Theme> themes) {
         if (themes == null) return Collections.emptySet();
         return themes.stream()
-            .map(this::toDto)
+            .map(this::toThemeDto)
             .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
@@ -79,8 +75,12 @@ public interface JournalistMapper {
     default Set<ThemeDTO> themeViewsToOrderedSet(List<ThemeView> themes) {
         if (themes == null) return Collections.emptySet();
         return themes.stream()
-            .map(this::toDto)
+            .map(this::toThemeDto)
             .collect(Collectors.toCollection(LinkedHashSet::new));
     }
+
+    ThemeDTO toThemeDto(Theme theme);
+
+    ThemeDTO toThemeDto(ThemeView theme);
 
 }

@@ -50,7 +50,7 @@ class JournalistReadRepositoryAdapterIT extends AbstractIntegrationTest {
         );
 
         assertThat(result.content()).extracting(JournalistListItemView::firstName).contains("Alice");
-        assertThat(result.content().getFirst().activities()).isNotEmpty();
+        assertThat(result.content().getFirst().mediaNames()).contains("Green Press");
     }
 
     @Test

@@ -13,6 +13,7 @@ import jakarta.persistence.EntityManager;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -99,6 +100,18 @@ class JournalistSortIT extends AbstractIntegrationTest {
     void unknownSortField_returns400() throws Exception {
         mockMvc.perform(get("/api/v1/journalists")
                 .param("sort", "unknownField,asc"))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.message", containsString("Unknown sort field 'unknownField'. Allowed:")));
+    }
+
+    @Test
+    @WithMockUser
+    void invalidSortDirection_returns400WithExplicitMessage() throws Exception {
+        mockMvc.perform(get("/api/v1/journalists")
+                .param("sort", "lastName,sideways"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.message").value("Unknown sort direction 'sideways'. Allowed: asc, desc"));
     }
 }

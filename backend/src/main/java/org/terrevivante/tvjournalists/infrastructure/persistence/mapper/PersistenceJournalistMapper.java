@@ -18,8 +18,6 @@ import org.terrevivante.tvjournalists.infrastructure.persistence.entity.ThemeEnt
 
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -48,16 +46,7 @@ public interface PersistenceJournalistMapper {
      * This avoids N+1 when the theme collection is lazily loaded after pagination.
      */
     default void attachThemes(List<JournalistEntity> journalists, List<ActivityEntity> activitiesWithThemes) {
-        Map<UUID, ActivityEntity> byId = activitiesWithThemes.stream()
-            .collect(Collectors.toMap(ActivityEntity::getId, activity -> activity));
-        for (JournalistEntity journalist : journalists) {
-            journalist.getActivities().forEach(activity -> {
-                ActivityEntity withThemes = byId.get(activity.getId());
-                if (withThemes != null) {
-                    activity.setThemes(withThemes.getThemes());
-                }
-            });
-        }
+        JournalistMapperSupport.attachThemes(journalists, activitiesWithThemes);
     }
 
     @Named("toMergedActivities")
@@ -82,31 +71,18 @@ public interface PersistenceJournalistMapper {
             existing.id(),
             existing.journalistId(),
             existing.media(),
-            firstNonBlank(existing.role(), activity.role()),
-            firstNonBlank(existing.specificEmail(), activity.specificEmail()),
-            firstNonBlank(existing.specificPhone(), activity.specificPhone()),
+            JournalistMapperSupport.firstNonBlank(existing.role(), activity.role()),
+            JournalistMapperSupport.firstNonBlank(existing.specificEmail(), activity.specificEmail()),
+            JournalistMapperSupport.firstNonBlank(existing.specificPhone(), activity.specificPhone()),
             mergeThemes(existing.themes(), activity.themes())
         );
     }
 
     private List<Theme> mergeThemes(List<Theme> left, List<Theme> right) {
-        Map<String, Theme> themesByKey = new LinkedHashMap<>();
-        left.forEach(theme -> themesByKey.put(themeKey(theme), theme));
-        right.forEach(theme -> themesByKey.putIfAbsent(themeKey(theme), theme));
-        return List.copyOf(themesByKey.values());
+        return JournalistMapperSupport.mergeByStableKey(left, right, this::themeKey);
     }
 
     private String themeKey(Theme theme) {
-        if (theme.id() != null) {
-            return theme.id().toString();
-        }
-        return "name:" + theme.name();
-    }
-
-    private String firstNonBlank(String left, String right) {
-        if (left != null && !left.isBlank()) {
-            return left;
-        }
-        return right;
+        return JournalistMapperSupport.themeKey(theme.id(), theme.name());
     }
 }
