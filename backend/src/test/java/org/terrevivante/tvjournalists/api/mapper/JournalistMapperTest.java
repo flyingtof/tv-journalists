@@ -1,15 +1,17 @@
 package org.terrevivante.tvjournalists.api.mapper;
 
 import org.junit.jupiter.api.Test;
-import org.terrevivante.tvjournalists.api.dto.ActivityDTO;
 import org.terrevivante.tvjournalists.api.dto.InteractionCreateDTO;
 import org.terrevivante.tvjournalists.api.dto.JournalistCreateDTO;
-import org.terrevivante.tvjournalists.api.dto.JournalistDTO;
+import org.terrevivante.tvjournalists.api.dto.JournalistListItemDTO;
+import org.terrevivante.tvjournalists.api.dto.JournalistProfileActivityDTO;
+import org.terrevivante.tvjournalists.api.dto.JournalistProfileDTO;
 import org.terrevivante.tvjournalists.api.dto.ThemeDTO;
 import org.terrevivante.tvjournalists.application.command.CreateJournalistCommand;
 import org.terrevivante.tvjournalists.application.command.LogInteractionCommand;
 import org.terrevivante.tvjournalists.application.readmodel.ActivityView;
 import org.terrevivante.tvjournalists.application.readmodel.JournalistListItemView;
+import org.terrevivante.tvjournalists.application.readmodel.JournalistProfileView;
 import org.terrevivante.tvjournalists.application.readmodel.MediaView;
 import org.terrevivante.tvjournalists.application.readmodel.ThemeView;
 import org.terrevivante.tvjournalists.domain.model.Activity;
@@ -21,9 +23,7 @@ import org.terrevivante.tvjournalists.domain.model.Theme;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,16 +32,16 @@ class JournalistMapperTest {
 
     private final JournalistMapper mapper = new  JournalistMapperImpl();
 
-    // ── toDto(Journalist) ─────────────────────────────────────────────────────
+    // ── toProfileDto(Journalist) ─────────────────────────────────────────────
 
     @Test
-    void toDto_journalist_mapsAllScalarFields() {
+    void toProfileDto_journalist_mapsAllScalarFields() {
         UUID id = UUID.randomUUID();
         OffsetDateTime now = OffsetDateTime.now();
         Journalist journalist = new Journalist(id, "Alice", "Green", "alice@example.com",
                 "+33600000000", now, now, List.of());
 
-        JournalistDTO dto = mapper.toDto(journalist);
+        JournalistProfileDTO dto = mapper.toProfileDto(journalist);
 
         assertThat(dto.id()).isEqualTo(id);
         assertThat(dto.firstName()).isEqualTo("Alice");
@@ -51,7 +51,7 @@ class JournalistMapperTest {
     }
 
     @Test
-    void toDto_journalist_mapsNestedActivitiesWithThemes() {
+    void toProfileDto_journalist_mapsNestedActivitiesWithThemes() {
         UUID themeId = UUID.randomUUID();
         UUID mediaId = UUID.randomUUID();
         UUID activityId = UUID.randomUUID();
@@ -65,10 +65,10 @@ class JournalistMapperTest {
         Journalist journalist = new Journalist(journalistId, "Alice", "Green",
                 null, null, null, null, List.of(activity));
 
-        JournalistDTO dto = mapper.toDto(journalist);
+        JournalistProfileDTO dto = mapper.toProfileDto(journalist);
 
         assertThat(dto.activities()).hasSize(1);
-        ActivityDTO actDto = dto.activities().getFirst();
+        JournalistProfileActivityDTO actDto = dto.activities().getFirst();
         assertThat(actDto.id()).isEqualTo(activityId);
         assertThat(actDto.themes()).hasSize(1);
         ThemeDTO themeDto = actDto.themes().iterator().next();
@@ -77,96 +77,74 @@ class JournalistMapperTest {
     }
 
     @Test
-    void toDto_journalist_withNullInput_returnsNull() {
-        assertThat(mapper.toDto((Journalist) null)).isNull();
+    void toProfileDto_journalist_withNullInput_returnsNull() {
+        assertThat(mapper.toProfileDto((Journalist) null)).isNull();
     }
 
     @Test
-    void toDto_journalistListItemView_mapsNestedActivitiesWithThemes() {
-        UUID themeId = UUID.randomUUID();
-        UUID mediaId = UUID.randomUUID();
-        UUID activityId = UUID.randomUUID();
+    void toListItemDto_journalistListItemView_mapsOnlyFieldsNeededByList() {
         UUID journalistId = UUID.randomUUID();
 
         JournalistListItemView journalist = new JournalistListItemView(
             journalistId,
             "Alice",
             "Green",
-            null,
-            null,
+            "alice@example.com",
+            List.of("Green Press", "LCI")
+        );
+
+        JournalistListItemDTO dto = mapper.toListItemDto(journalist);
+
+        assertThat(dto.id()).isEqualTo(journalistId);
+        assertThat(dto.firstName()).isEqualTo("Alice");
+        assertThat(dto.lastName()).isEqualTo("Green");
+        assertThat(dto.globalEmail()).isEqualTo("alice@example.com");
+        assertThat(dto.mediaNames()).containsExactly("Green Press", "LCI");
+    }
+
+    @Test
+    void toProfileDto_profileView_mapsDetailedActivities() {
+        UUID themeId = UUID.randomUUID();
+        UUID activityId = UUID.randomUUID();
+        JournalistProfileView profile = new JournalistProfileView(
+            UUID.randomUUID(),
+            "Alice",
+            "Green",
+            "alice@example.com",
+            "+33600000000",
             List.of(new ActivityView(
                 activityId,
-                new MediaView(mediaId, "Green Press"),
+                new MediaView(UUID.randomUUID(), "Green Press"),
                 "Reporter",
-                "act@example.com",
+                "alice.green@press.com",
                 "+33611111111",
                 List.of(new ThemeView(themeId, "Biodiversity"))
             ))
         );
 
-        JournalistDTO dto = mapper.toDto(journalist);
+        JournalistProfileDTO dto = mapper.toProfileDto(profile);
 
         assertThat(dto.activities()).hasSize(1);
-        ActivityDTO actDto = dto.activities().getFirst();
-        assertThat(actDto.id()).isEqualTo(activityId);
-        assertThat(actDto.mediaId()).isEqualTo(mediaId);
-        assertThat(actDto.mediaName()).isEqualTo("Green Press");
-        assertThat(actDto.themes()).hasSize(1);
-        ThemeDTO themeDto = actDto.themes().iterator().next();
-        assertThat(themeDto.id()).isEqualTo(themeId);
-        assertThat(themeDto.name()).isEqualTo("Biodiversity");
+        JournalistProfileActivityDTO activity = dto.activities().getFirst();
+        assertThat(activity.mediaName()).isEqualTo("Green Press");
+        assertThat(activity.specificEmail()).isEqualTo("alice.green@press.com");
+        assertThat(activity.themes()).extracting(ThemeDTO::name).containsExactly("Biodiversity");
     }
 
-    // ── toDto(Activity) ───────────────────────────────────────────────────────
+    // ── toThemeDto(Theme) ─────────────────────────────────────────────────────
 
     @Test
-    void toDto_activity_flattensMediaToIdAndName() {
-        UUID mediaId = UUID.randomUUID();
-        Media media = new Media(mediaId, "Le Monde", MediaType.PRESS, "https://lemonde.fr");
-        Activity activity = new Activity(UUID.randomUUID(), UUID.randomUUID(), media,
-                "Columnist", null, null, List.of());
-
-        ActivityDTO dto = mapper.toDto(activity);
-
-        assertThat(dto.mediaId()).isEqualTo(mediaId);
-        assertThat(dto.mediaName()).isEqualTo("Le Monde");
-    }
-
-    @Test
-    void toDto_activity_themesReturnedAsLinkedHashSet() {
-        UUID t1 = UUID.randomUUID();
-        UUID t2 = UUID.randomUUID();
-        Media media = new Media(UUID.randomUUID(), "Press", MediaType.PRESS, null);
-        Activity activity = new Activity(UUID.randomUUID(), UUID.randomUUID(), media, null, null, null,
-                List.of(new Theme(t1, "Alpha"), new Theme(t2, "Beta")));
-
-        ActivityDTO dto = mapper.toDto(activity);
-
-        Set<ThemeDTO> themes = dto.themes();
-        assertThat(themes).isInstanceOf(LinkedHashSet.class);
-        List<UUID> ids = themes.stream().map(ThemeDTO::id).toList();
-        assertThat(ids).containsExactly(t1, t2);
-    }
-
-    @Test
-    void toDto_activity_withNullInput_returnsNull() {
-        assertThat(mapper.toDto((Activity) null)).isNull();
-    }
-
-    // ── toDto(Theme) ──────────────────────────────────────────────────────────
-
-    @Test
-    void toDto_theme_mapsIdAndName() {
+    void toThemeDto_theme_mapsIdAndName() {
         UUID id = UUID.randomUUID();
-        ThemeDTO dto = mapper.toDto(new Theme(id, "Environment"));
+        ThemeDTO dto = mapper.toThemeDto(new Theme(id, "Environment"));
 
         assertThat(dto.id()).isEqualTo(id);
         assertThat(dto.name()).isEqualTo("Environment");
     }
 
     @Test
-    void toDto_theme_withNullInput_returnsNull() {
-        assertThat(mapper.toDto((Theme) null)).isNull();
+    void toThemeDto_theme_withNullInput_returnsNull() {
+        assertThat(mapper.toThemeDto((Theme) null)).isNull();
     }
 
     // ── toDto(InteractionLog) ─────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import type { Journalist } from '../types';
-import { fetchWithAuth, UnauthorizedError } from '../api/apiClient';
+import type { JournalistProfile } from '../types';
+import { ApiError, fetchWithAuth, UnauthorizedError } from '../api/apiClient';
 import '../styles/Profile.css';
 
 interface SearchLocationState {
@@ -19,20 +19,27 @@ const isSearchLocationState = (state: unknown): state is SearchLocationState => 
 
 export const JournalistProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [journalist, setJournalist] = useState<Journalist | null>(null);
+  const [journalist, setJournalist] = useState<JournalistProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [visible, setVisible] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchJournalist = async () => {
       if (!id) return;
       try {
         const res = await fetchWithAuth(`/api/v1/journalists/${id}`);
-        const data = await res.json();
+        const data = (await res.json()) as JournalistProfile;
         setJournalist(data);
+        setLoadError(null);
       } catch (error) {
         if (!(error instanceof UnauthorizedError)) {
           console.error('Failed to fetch journalist profile:', error);
+          if (error instanceof ApiError && error.status === 404) {
+            setLoadError('Journaliste introuvable');
+          } else {
+            setLoadError('Impossible de charger la fiche journaliste. Veuillez reessayer.');
+          }
         }
       } finally {
         setLoading(false);
@@ -49,7 +56,8 @@ export const JournalistProfilePage: React.FC = () => {
   }, []);
 
   if (loading) return <div style={{ padding: '24px' }}>Chargement...</div>;
-  if (!journalist) return <div style={{ padding: '24px' }}>Journaliste introuvable</div>;
+  if (loadError) return <div style={{ padding: '24px' }} role="alert">{loadError}</div>;
+  if (!journalist) return <div style={{ padding: '24px' }} role="alert">Journaliste introuvable</div>;
 
   return (
     <div 

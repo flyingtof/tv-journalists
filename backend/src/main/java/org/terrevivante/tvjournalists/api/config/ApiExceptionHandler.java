@@ -8,6 +8,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.terrevivante.tvjournalists.api.dto.ApiError;
 import org.terrevivante.tvjournalists.api.dto.ValidationErrorResponse;
 import org.terrevivante.tvjournalists.application.exception.ActivityNotFoundException;
 import org.terrevivante.tvjournalists.application.exception.ActivityNotOwnedByJournalistException;
@@ -25,8 +26,8 @@ import java.util.List;
 public class ApiExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Void> handleIllegalArgument(IllegalArgumentException exception) {
-        return ResponseEntity.badRequest().build();
+    public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException exception) {
+        return ResponseEntity.badRequest().body(new ApiError(HttpStatus.BAD_REQUEST.value(), exception.getMessage()));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)

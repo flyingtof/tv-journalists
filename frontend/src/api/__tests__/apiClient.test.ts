@@ -1,6 +1,20 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ApiError, fetchAuthBootstrap, fetchWithAuth, UnauthorizedError } from '../apiClient';
 
+type MockResponse = {
+  status: number;
+  ok: boolean;
+  headers?: { get: (name: string) => string | null };
+  json?: () => Promise<unknown>;
+};
+
+const jsonResponse = (status: number, body: unknown): MockResponse => ({
+  status,
+  ok: status >= 200 && status < 300,
+  headers: { get: () => 'application/json' },
+  json: async () => body,
+});
+
 const mockLocation = (pathname = '/guide', search = '') => {
   let hrefValue = `${pathname}${search}`;
   let hrefAssignments = 0;
@@ -141,6 +155,28 @@ describe('fetchWithAuth', () => {
       name: 'ApiError',
       status: 409,
       message: 'API request failed with status 409',
+    });
+  });
+
+  it('propagates backend error payload in ApiError when available', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        jsonResponse(400, {
+          status: 400,
+          message: "Unknown sort direction 'sideways'. Allowed: asc, desc",
+          code: 'INVALID_SORT_DIRECTION',
+        }),
+      ),
+    );
+
+    const request = fetchWithAuth('/api/v1/journalists?sort=lastName,sideways');
+
+    await expect(request).rejects.toBeInstanceOf(ApiError);
+    await expect(request).rejects.toMatchObject({
+      status: 400,
+      message: "Unknown sort direction 'sideways'. Allowed: asc, desc",
+      code: 'INVALID_SORT_DIRECTION',
     });
   });
 });

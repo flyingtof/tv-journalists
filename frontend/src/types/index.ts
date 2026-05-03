@@ -3,23 +3,29 @@ export interface Theme {
   name: string;
 }
 
-export interface Activity {
+export interface JournalistProfileActivity {
   id: string;
-  mediaId: string;
   mediaName: string;
   role: string;
   specificEmail?: string;
-  specificPhone?: string;
   themes: Theme[];
 }
 
-export interface Journalist {
+export interface JournalistListItem {
+  id: string;
+  firstName: string;
+  lastName: string;
+  globalEmail?: string;
+  mediaNames: string[];
+}
+
+export interface JournalistProfile {
   id: string;
   firstName: string;
   lastName: string;
   globalEmail?: string;
   globalPhone?: string;
-  activities: Activity[];
+  activities: JournalistProfileActivity[];
 }
 
 export interface JournalistCreate {
