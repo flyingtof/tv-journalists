@@ -11,6 +11,10 @@ import org.terrevivante.tvjournalists.api.dto.JournalistDTO;
 import org.terrevivante.tvjournalists.api.dto.ThemeDTO;
 import org.terrevivante.tvjournalists.application.command.CreateJournalistCommand;
 import org.terrevivante.tvjournalists.application.command.LogInteractionCommand;
+import org.terrevivante.tvjournalists.application.readmodel.ActivityView;
+import org.terrevivante.tvjournalists.application.readmodel.JournalistListItemView;
+import org.terrevivante.tvjournalists.application.readmodel.JournalistProfileView;
+import org.terrevivante.tvjournalists.application.readmodel.ThemeView;
 import org.terrevivante.tvjournalists.domain.model.Activity;
 import org.terrevivante.tvjournalists.domain.model.InteractionLog;
 import org.terrevivante.tvjournalists.domain.model.Journalist;
@@ -28,12 +32,23 @@ public interface JournalistMapper {
 
     JournalistDTO toDto(Journalist journalist);
 
+    JournalistDTO toDto(JournalistListItemView journalist);
+
+    JournalistDTO toDto(JournalistProfileView journalist);
+
     @Mapping(source = "media.id", target = "mediaId")
     @Mapping(source = "media.name", target = "mediaName")
     @Mapping(source = "themes", target = "themes", qualifiedByName = "themesToOrderedSet")
     ActivityDTO toDto(Activity activity);
 
+    @Mapping(source = "media.id", target = "mediaId")
+    @Mapping(source = "media.name", target = "mediaName")
+    @Mapping(source = "themes", target = "themes", qualifiedByName = "themeViewsToOrderedSet")
+    ActivityDTO toDto(ActivityView activity);
+
     ThemeDTO toDto(Theme theme);
+
+    ThemeDTO toDto(ThemeView theme);
 
     InteractionDTO toDto(InteractionLog log);
 
@@ -54,6 +69,14 @@ public interface JournalistMapper {
 
     @Named("themesToOrderedSet")
     default Set<ThemeDTO> themesToOrderedSet(List<Theme> themes) {
+        if (themes == null) return Collections.emptySet();
+        return themes.stream()
+            .map(this::toDto)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    @Named("themeViewsToOrderedSet")
+    default Set<ThemeDTO> themeViewsToOrderedSet(List<ThemeView> themes) {
         if (themes == null) return Collections.emptySet();
         return themes.stream()
             .map(this::toDto)

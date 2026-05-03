@@ -4,11 +4,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.terrevivante.tvjournalists.api.dto.PageResponse;
 import org.terrevivante.tvjournalists.api.mapper.JournalistMapper;
+import org.terrevivante.tvjournalists.application.readmodel.JournalistListItemView;
 import org.terrevivante.tvjournalists.application.usecase.CreateJournalistUseCase;
-import org.terrevivante.tvjournalists.application.usecase.GetJournalistUseCase;
+import org.terrevivante.tvjournalists.application.usecase.GetJournalistProfileUseCase;
 import org.terrevivante.tvjournalists.application.usecase.LogInteractionUseCase;
-import org.terrevivante.tvjournalists.application.usecase.SearchJournalistsUseCase;
-import org.terrevivante.tvjournalists.domain.model.Journalist;
+import org.terrevivante.tvjournalists.application.usecase.SearchJournalistListUseCase;
 import org.terrevivante.tvjournalists.domain.query.PageRequest;
 import org.terrevivante.tvjournalists.domain.query.PageResult;
 import org.terrevivante.tvjournalists.domain.query.SortDirection;
@@ -27,8 +27,8 @@ import static org.mockito.Mockito.when;
 class JournalistControllerTest {
 
     private final CreateJournalistUseCase createJournalistUseCase = mock(CreateJournalistUseCase.class);
-    private final GetJournalistUseCase getJournalistUseCase = mock(GetJournalistUseCase.class);
-    private final SearchJournalistsUseCase searchJournalistsUseCase = mock(SearchJournalistsUseCase.class);
+    private final GetJournalistProfileUseCase getJournalistUseCase = mock(GetJournalistProfileUseCase.class);
+    private final SearchJournalistListUseCase searchJournalistsUseCase = mock(SearchJournalistListUseCase.class);
     private final LogInteractionUseCase logInteractionUseCase = mock(LogInteractionUseCase.class);
     private final JournalistMapper journalistMapper = mock(JournalistMapper.class);
     private final JournalistController controller = new JournalistController(
@@ -37,7 +37,7 @@ class JournalistControllerTest {
 
     @Test
     void searchJournalists_mapsExplicitPageAndSizeToPageRequest() {
-        PageResult<Journalist> empty = new PageResult<>(List.of(), 0L, 2, 15);
+        PageResult<JournalistListItemView> empty = new PageResult<>(List.of(), 0L, 2, 15);
         when(searchJournalistsUseCase.search(any(), eq(new PageRequest(2, 15, List.of())))).thenReturn(empty);
 
         var response = controller.searchJournalists(null, null, null, 2, 15, new MockHttpServletRequest());
@@ -51,7 +51,7 @@ class JournalistControllerTest {
 
     @Test
     void searchJournalists_usesDefaultPageAndSizeWhenNotProvided() {
-        PageResult<Journalist> empty = new PageResult<>(List.of(), 0L, 0, 20);
+        PageResult<JournalistListItemView> empty = new PageResult<>(List.of(), 0L, 0, 20);
         when(searchJournalistsUseCase.search(any(), eq(new PageRequest(0, 20, List.of())))).thenReturn(empty);
 
         var response = controller.searchJournalists(null, null, null, 0, 20, new MockHttpServletRequest());
@@ -62,7 +62,7 @@ class JournalistControllerTest {
 
     @Test
     void searchJournalists_sortParamIsParsedAndPassedToUseCase() {
-        PageResult<Journalist> empty = new PageResult<>(List.of(), 0L, 0, 20);
+        PageResult<JournalistListItemView> empty = new PageResult<>(List.of(), 0L, 0, 20);
         when(searchJournalistsUseCase.search(any(), any())).thenReturn(empty);
 
         MockHttpServletRequest request = new MockHttpServletRequest();
@@ -78,7 +78,7 @@ class JournalistControllerTest {
 
     @Test
     void searchJournalists_sortDescIsParsedCorrectly() {
-        PageResult<Journalist> empty = new PageResult<>(List.of(), 0L, 0, 20);
+        PageResult<JournalistListItemView> empty = new PageResult<>(List.of(), 0L, 0, 20);
         when(searchJournalistsUseCase.search(any(), any())).thenReturn(empty);
 
         MockHttpServletRequest request = new MockHttpServletRequest();
@@ -94,7 +94,7 @@ class JournalistControllerTest {
 
     @Test
     void searchJournalists_supportsMultipleSortParams() {
-        PageResult<Journalist> empty = new PageResult<>(List.of(), 0L, 0, 20);
+        PageResult<JournalistListItemView> empty = new PageResult<>(List.of(), 0L, 0, 20);
         when(searchJournalistsUseCase.search(any(), any())).thenReturn(empty);
 
         MockHttpServletRequest request = new MockHttpServletRequest();
@@ -114,7 +114,7 @@ class JournalistControllerTest {
     @Test
     void searchJournalists_responseHasSpringPageCompatibleShape() {
         // 25 items, page 1, size 10 → totalPages=3, first=false, last=false
-        PageResult<Journalist> result = new PageResult<>(List.of(), 25L, 1, 10);
+        PageResult<JournalistListItemView> result = new PageResult<>(List.of(), 25L, 1, 10);
         when(searchJournalistsUseCase.search(any(), any())).thenReturn(result);
 
         var response = controller.searchJournalists(null, null, null, 1, 10, new MockHttpServletRequest());
@@ -142,7 +142,7 @@ class JournalistControllerTest {
 
     @Test
     void searchJournalists_firstPageIsMarkedFirst() {
-        PageResult<Journalist> result = new PageResult<>(List.of(), 5L, 0, 10);
+        PageResult<JournalistListItemView> result = new PageResult<>(List.of(), 5L, 0, 10);
         when(searchJournalistsUseCase.search(any(), any())).thenReturn(result);
 
         var response = controller.searchJournalists(null, null, null, 0, 10, new MockHttpServletRequest());
@@ -156,7 +156,7 @@ class JournalistControllerTest {
     @Test
     void emptyResults_yieldTotalPagesOne() {
         // Spring Page-compatible: an empty result set still has 1 page (just empty)
-        PageResult<Journalist> empty = new PageResult<>(List.of(), 0L, 0, 20);
+        PageResult<JournalistListItemView> empty = new PageResult<>(List.of(), 0L, 0, 20);
         when(searchJournalistsUseCase.search(any(), any())).thenReturn(empty);
 
         var response = controller.searchJournalists(null, null, null, 0, 20, new MockHttpServletRequest());

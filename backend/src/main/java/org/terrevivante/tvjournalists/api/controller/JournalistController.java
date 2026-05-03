@@ -16,12 +16,14 @@ import org.terrevivante.tvjournalists.api.dto.JournalistCreateDTO;
 import org.terrevivante.tvjournalists.api.dto.JournalistDTO;
 import org.terrevivante.tvjournalists.api.dto.PageResponse;
 import org.terrevivante.tvjournalists.api.mapper.JournalistMapper;
+import org.terrevivante.tvjournalists.application.readmodel.JournalistListItemView;
+import org.terrevivante.tvjournalists.application.readmodel.JournalistProfileView;
 import org.terrevivante.tvjournalists.application.usecase.CreateJournalistUseCase;
-import org.terrevivante.tvjournalists.application.usecase.GetJournalistUseCase;
+import org.terrevivante.tvjournalists.application.usecase.GetJournalistProfileUseCase;
 import org.terrevivante.tvjournalists.application.usecase.LogInteractionUseCase;
-import org.terrevivante.tvjournalists.application.usecase.SearchJournalistsUseCase;
-import org.terrevivante.tvjournalists.domain.model.Journalist;
+import org.terrevivante.tvjournalists.application.usecase.SearchJournalistListUseCase;
 import org.terrevivante.tvjournalists.domain.model.InteractionLog;
+import org.terrevivante.tvjournalists.domain.model.Journalist;
 import org.terrevivante.tvjournalists.domain.query.JournalistSearchCriteria;
 import org.terrevivante.tvjournalists.domain.query.PageRequest;
 import org.terrevivante.tvjournalists.domain.query.PageResult;
@@ -37,19 +39,19 @@ import java.util.UUID;
 public class JournalistController {
 
     private final CreateJournalistUseCase createJournalistUseCase;
-    private final GetJournalistUseCase getJournalistUseCase;
-    private final SearchJournalistsUseCase searchJournalistsUseCase;
+    private final GetJournalistProfileUseCase getJournalistProfileUseCase;
+    private final SearchJournalistListUseCase searchJournalistListUseCase;
     private final LogInteractionUseCase logInteractionUseCase;
     private final JournalistMapper journalistMapper;
 
     public JournalistController(CreateJournalistUseCase createJournalistUseCase,
-                                GetJournalistUseCase getJournalistUseCase,
-                                SearchJournalistsUseCase searchJournalistsUseCase,
+                                GetJournalistProfileUseCase getJournalistProfileUseCase,
+                                SearchJournalistListUseCase searchJournalistListUseCase,
                                 LogInteractionUseCase logInteractionUseCase,
                                 JournalistMapper journalistMapper) {
         this.createJournalistUseCase = createJournalistUseCase;
-        this.getJournalistUseCase = getJournalistUseCase;
-        this.searchJournalistsUseCase = searchJournalistsUseCase;
+        this.getJournalistProfileUseCase = getJournalistProfileUseCase;
+        this.searchJournalistListUseCase = searchJournalistListUseCase;
         this.logInteractionUseCase = logInteractionUseCase;
         this.journalistMapper = journalistMapper;
     }
@@ -62,7 +64,7 @@ public class JournalistController {
 
     @GetMapping("/{id}")
     public ResponseEntity<JournalistDTO> getJournalist(@PathVariable UUID id) {
-        Journalist journalist = getJournalistUseCase.getById(id);
+        JournalistProfileView journalist = getJournalistProfileUseCase.getById(id);
         return ResponseEntity.ok(journalistMapper.toDto(journalist));
     }
 
@@ -84,9 +86,9 @@ public class JournalistController {
         List<SortOrder> sortOrders = parseSortParams(
             rawSort != null ? Arrays.asList(rawSort) : List.of());
         PageRequest pageRequest = new PageRequest(page, size, sortOrders);
-        PageResult<Journalist> results = searchJournalistsUseCase.search(criteria, pageRequest);
+        PageResult<JournalistListItemView> results = searchJournalistListUseCase.search(criteria, pageRequest);
         PageResult<JournalistDTO> dtoResults = new PageResult<>(
-            results.content().stream().map(journalistMapper::toDto).toList(),
+            results.content().stream().map(item -> journalistMapper.toDto(item)).toList(),
             results.totalElements(),
             results.page(),
             results.size()
