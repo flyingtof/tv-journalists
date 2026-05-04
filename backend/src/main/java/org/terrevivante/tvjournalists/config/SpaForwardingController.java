@@ -16,7 +16,7 @@ class SpaForwardingController {
         value = {"/", "/login", "/guide", "/admin/users", "/admin/themes", "/journalists/{id}"},
         produces = MediaType.TEXT_HTML_VALUE
     )
-    public ResponseEntity<Resource> serveSpaBShell() {
+    public ResponseEntity<Resource> serveSpaShell() {
         return ResponseEntity.ok()
             .contentType(MediaType.TEXT_HTML)
             .body(new ClassPathResource("static/index.html"));
