@@ -14,6 +14,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -68,6 +69,23 @@ class AuthControllerIT extends AbstractIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.username").value("admin"))
             .andExpect(jsonPath("$.roles", containsInAnyOrder("ADMIN", "THEME_MANAGER", "USER")));
+    }
+
+    @Test
+    void shouldRedirectSuccessfulLoginToSpaRoot() throws Exception {
+        mockMvc.perform(formLogin("/api/login").user("admin").password("admin123!"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(authenticated().withUsername("admin"))
+            .andExpect(header().string("Location", "/"));
+    }
+
+    @Test
+    void shouldRedirectLogoutToBackendServedLoginPage() throws Exception {
+        MockHttpSession session = loginAs("admin", "admin123!");
+
+        mockMvc.perform(get("/api/logout").session(session))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(header().string("Location", "/login?logout"));
     }
 
     private MockHttpSession loginAs(String username, String password) throws Exception {

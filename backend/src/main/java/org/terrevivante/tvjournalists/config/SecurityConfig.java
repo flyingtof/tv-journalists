@@ -36,15 +36,15 @@ public class SecurityConfig {
             )
             // After login, always redirect to the SPA root (never to the saved API request URL)
             .formLogin(form -> form
-                .loginPage("http://localhost:5173/login") // Tells Spring to redirect here when authentication is needed
+                .loginPage("/login")
                 .loginProcessingUrl("/api/login")
-                .defaultSuccessUrl("http://localhost:5173/", true)
-                .failureUrl("http://localhost:5173/login?error")
+                .defaultSuccessUrl("/", true)
+                .failureUrl("/login?error")
                 .permitAll()
             )
             .logout(logout -> logout
                 .logoutRequestMatcher(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/api/logout", "GET"))
-                .logoutSuccessUrl("http://localhost:5173/login?logout")
+                .logoutSuccessUrl("/login?logout")
                 .deleteCookies("JSESSIONID")
                 .invalidateHttpSession(true)
                 .permitAll()
