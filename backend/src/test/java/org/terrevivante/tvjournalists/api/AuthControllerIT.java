@@ -13,6 +13,7 @@ import org.terrevivante.tvjournalists.AbstractIntegrationTest;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
+import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -77,6 +78,14 @@ class AuthControllerIT extends AbstractIntegrationTest {
             .andExpect(status().is3xxRedirection())
             .andExpect(authenticated().withUsername("admin"))
             .andExpect(header().string("Location", "/"));
+    }
+
+    @Test
+    void shouldRedirectFailedLoginToLoginPageWithErrorParam() throws Exception {
+        mockMvc.perform(formLogin("/api/login").user("admin").password("wrong"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(unauthenticated())
+            .andExpect(header().string("Location", "/login?error"));
     }
 
     @Test
