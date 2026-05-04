@@ -33,8 +33,10 @@ export const frMessages: Messages = {
   'journalistSearch.themesLabel': 'Thèmes',
   'journalistSearch.search': 'Rechercher',
   'journalistSearch.loadError': 'Impossible de charger la liste des journalistes. Veuillez réessayer.',
+  'journalistSearch.pagination.first': 'Première page',
   'journalistSearch.pagination.previous': 'Précédent',
   'journalistSearch.pagination.next': 'Suivant',
+  'journalistSearch.pagination.last': 'Dernière page',
   'journalistSearch.pagination.summary': '{start}-{end} sur {total}',
   'journalistSearch.pagination.emptyState': '0-0 sur 0',
   

@@ -366,11 +366,20 @@ export const JournalistSearchPage: React.FC = () => {
         <div className="pagination-sticky">
           <div className="pagination-controls">
             <button
+              onClick={() => setPage(0)}
+              disabled={journalists.first}
+              className="pagination-button"
+              aria-label={t('journalistSearch.pagination.first')}
+            >
+              &laquo;
+            </button>
+            <button
               onClick={() => setPage((currentPage) => currentPage - 1)}
               disabled={journalists.first}
               className="pagination-button"
+              aria-label={t('journalistSearch.pagination.previous')}
             >
-              {t('journalistSearch.pagination.previous')}
+              &lsaquo;
             </button>
             <span className="pagination-info">
               {(() => {
@@ -387,8 +396,17 @@ export const JournalistSearchPage: React.FC = () => {
               onClick={() => setPage((currentPage) => currentPage + 1)}
               disabled={journalists.last}
               className="pagination-button"
+              aria-label={t('journalistSearch.pagination.next')}
             >
-              {t('journalistSearch.pagination.next')}
+              &rsaquo;
+            </button>
+            <button
+              onClick={() => setPage(journalists.totalPages - 1)}
+              disabled={journalists.last}
+              className="pagination-button"
+              aria-label={t('journalistSearch.pagination.last')}
+            >
+              &raquo;
             </button>
             <select value={pageSize} onChange={handlePageSizeChange} className="pagination-select">
               <option value={5}>5</option>
