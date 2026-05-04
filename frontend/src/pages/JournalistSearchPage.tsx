@@ -300,7 +300,7 @@ export const JournalistSearchPage: React.FC = () => {
               type="text"
               id="name"
               name="name"
-              placeholder="ex: Jean Dupont"
+              placeholder={t('journalistSearch.namePlaceholder')}
               value={filters.name}
               onChange={handleChange}
               className="field-input"
@@ -315,7 +315,7 @@ export const JournalistSearchPage: React.FC = () => {
                   onSelect={addMedia}
                   name="media"
                   id="media"
-                  placeholder="ex: Le Monde"
+                  placeholder={t('journalistSearch.mediaPlaceholder')}
                 />
               </div>
               <div className="tags-container">
@@ -337,7 +337,7 @@ export const JournalistSearchPage: React.FC = () => {
                   onSelect={addTheme}
                   name="themes"
                   id="themes"
-                  placeholder="Ajouter un thème..."
+                  placeholder={t('journalistSearch.themesPlaceholder')}
                 />
               </div>
               <div className="tags-container">

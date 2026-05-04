@@ -14,8 +14,8 @@ export const LoginPage: React.FC = () => {
     <div className="login-page">
       <div className="login-card">
         <div className="login-header">
-          <h1 className="login-title">Connexion</h1>
-          <p className="login-subtitle">Accédez à votre espace TV Journalists</p>
+          <h1 className="login-title">{t('login.title')}</h1>
+          <p className="login-subtitle">{t('login.subtitle')}</p>
         </div>
 
         {isError && (
@@ -42,7 +42,7 @@ export const LoginPage: React.FC = () => {
               autoComplete="username"
               required
               className="form-input"
-              placeholder="votre utilisateur"
+              placeholder={t('login.usernamePlaceholder')}
             />
           </div>
 
@@ -57,7 +57,7 @@ export const LoginPage: React.FC = () => {
               autoComplete="current-password"
               required
               className="form-input"
-              placeholder="••••••••"
+              placeholder={t('login.passwordPlaceholder')}
             />
           </div>
 

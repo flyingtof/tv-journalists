@@ -20,8 +20,12 @@ export const frMessages: Messages = {
   'protectedRoute.loading': 'Chargement de la session...',
   
   // Login page
+  'login.title': 'Connexion',
+  'login.subtitle': 'Accédez à votre espace TV Journalists',
   'login.username': 'Utilisateur',
+  'login.usernamePlaceholder': 'votre utilisateur',
   'login.password': 'Mot de passe',
+  'login.passwordPlaceholder': '••••••••',
   'login.submit': 'Se connecter',
   'login.invalidCredentials': 'Identifiants invalides. Veuillez réessayer.',
   'login.logoutSuccess': 'Vous avez été déconnecté avec succès.',
@@ -29,8 +33,11 @@ export const frMessages: Messages = {
   // Journalist search page
   'journalistSearch.title': 'Recherche de journalistes',
   'journalistSearch.nameLabel': 'Nom',
+  'journalistSearch.namePlaceholder': 'ex : Jean Dupont',
   'journalistSearch.mediaLabel': 'Média',
+  'journalistSearch.mediaPlaceholder': 'ex : Le Monde',
   'journalistSearch.themesLabel': 'Thèmes',
+  'journalistSearch.themesPlaceholder': 'ex : Changement climatique',
   'journalistSearch.search': 'Rechercher',
   'journalistSearch.loadError': 'Impossible de charger la liste des journalistes. Veuillez réessayer.',
   'journalistSearch.pagination.first': 'Première page',
