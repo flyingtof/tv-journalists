@@ -18,8 +18,6 @@ import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
-import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
-import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.web.SecurityFilterChain;
@@ -37,18 +35,18 @@ public class AuthorizationServerConfig {
 
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
-    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
-        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
-        http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-            .oidc(Customizer.withDefaults()); // Enable OpenID Connect 1.0
+    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) {
         http
-            .exceptionHandling((exceptions) -> exceptions
+            .oauth2AuthorizationServer(server -> {
+                http.securityMatcher(server.getEndpointsMatcher());
+                server.oidc(Customizer.withDefaults());
+            })
+            .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
+            .exceptionHandling(exceptions -> exceptions
                 .defaultAuthenticationEntryPointFor(
                     new LoginUrlAuthenticationEntryPoint("/login"),
-                    new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
-                )
+                    new MediaTypeRequestMatcher(MediaType.TEXT_HTML))
             );
-
         return http.build();
     }
 
