@@ -1,12 +1,12 @@
 package org.terrevivante.tvjournalists.api;
 
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.terrevivante.tvjournalists.AbstractIntegrationTest;
 import org.terrevivante.tvjournalists.infrastructure.persistence.entity.ActivityEntity;
 import org.terrevivante.tvjournalists.infrastructure.persistence.entity.JournalistEntity;
 import org.terrevivante.tvjournalists.infrastructure.persistence.entity.MediaEntity;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -19,7 +19,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc
 @Transactional
-public class InteractionControllerIT extends AbstractIntegrationTest {
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+class InteractionControllerIT extends AbstractIntegrationTest {
 
     private static final String STABLE_PAST_DATE = "2000-03-29";
 

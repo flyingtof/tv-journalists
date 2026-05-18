@@ -6,9 +6,11 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -16,22 +18,26 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private static final String ADMIN_ROLE = "ADMIN";
+    private static final String THEME_MANAGER_ROLE = "THEME_MANAGER";
+    private static final String API_THEMES = "/api/v1/themes";
+
     @Bean
     @Order(2)
-    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) {
         http
-            .csrf(csrf -> csrf.disable())
+            .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/", "/login", "/guide", "/admin/users", "/admin/themes").permitAll()
                 .requestMatchers("/journalists/*").permitAll()
                 .requestMatchers("/assets/**", "/favicon.ico", "/vite.svg", "/index.html").permitAll()
                 .requestMatchers("/api/login", "/api/logout").permitAll()
                 .requestMatchers("/api/v1/auth/me").permitAll()
-                .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/v1/themes").hasAnyRole("ADMIN", "THEME_MANAGER")
-                .requestMatchers(HttpMethod.PUT, "/api/v1/themes", "/api/v1/themes/**").hasAnyRole("ADMIN", "THEME_MANAGER")
-                .requestMatchers(HttpMethod.DELETE, "/api/v1/themes", "/api/v1/themes/**").hasAnyRole("ADMIN", "THEME_MANAGER")
-                .requestMatchers("/api/v1/**").hasAnyRole("USER", "ADMIN", "THEME_MANAGER")
+                .requestMatchers("/api/v1/users/**").hasRole(ADMIN_ROLE)
+                .requestMatchers(HttpMethod.POST, API_THEMES).hasAnyRole(ADMIN_ROLE, THEME_MANAGER_ROLE)
+                .requestMatchers(HttpMethod.PUT, API_THEMES, API_THEMES+"/**").hasAnyRole(ADMIN_ROLE, THEME_MANAGER_ROLE)
+                .requestMatchers(HttpMethod.DELETE, API_THEMES, API_THEMES+"/**").hasAnyRole(ADMIN_ROLE, THEME_MANAGER_ROLE)
+                .requestMatchers("/api/v1/**").hasAnyRole("USER", ADMIN_ROLE, THEME_MANAGER_ROLE)
                 .anyRequest().authenticated()
             )
             // After login, always redirect to the SPA root (never to the saved API request URL)
@@ -43,7 +49,7 @@ public class SecurityConfig {
                 .permitAll()
             )
             .logout(logout -> logout
-                .logoutRequestMatcher(new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/api/logout", "GET"))
+                .logoutRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET,"/api/logout"))
                 .logoutSuccessUrl("/login?logout")
                 .deleteCookies("JSESSIONID")
                 .invalidateHttpSession(true)

@@ -4,5 +4,5 @@ set -eu
 repo_root=$(git rev-parse --show-toplevel)
 cd "$repo_root"
 
-mvn -q -pl backend checkstyle:check
+mvn -q -f backend checkstyle:check
 npm --prefix frontend run lint
