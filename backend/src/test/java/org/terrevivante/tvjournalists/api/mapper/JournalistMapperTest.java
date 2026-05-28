@@ -3,6 +3,7 @@ package org.terrevivante.tvjournalists.api.mapper;
 import org.junit.jupiter.api.Test;
 import org.terrevivante.tvjournalists.api.dto.InteractionCreateDTO;
 import org.terrevivante.tvjournalists.api.dto.JournalistCreateDTO;
+import org.terrevivante.tvjournalists.api.dto.JournalistActivityUpsertDTO;
 import org.terrevivante.tvjournalists.api.dto.JournalistListItemDTO;
 import org.terrevivante.tvjournalists.api.dto.JournalistProfileActivityDTO;
 import org.terrevivante.tvjournalists.api.dto.JournalistProfileDTO;
@@ -222,7 +223,7 @@ class JournalistMapperTest {
 
     @Test
     void toCommand_logInteraction_withNullDto_returnsNull() {
-        assertThat(mapper.toCommand(UUID.randomUUID(), null)).isNull();
+        assertThat(mapper.toCommand(UUID.randomUUID(), (InteractionCreateDTO) null)).isNull();
     }
 
     // ── toCommand(JournalistCreateDTO) ────────────────────────────────────────
@@ -244,7 +245,32 @@ class JournalistMapperTest {
     }
 
     @Test
+    void toCommand_createJournalist_mapsActivities() {
+        UUID mediaId = UUID.randomUUID();
+        UUID themeId = UUID.randomUUID();
+
+        JournalistActivityUpsertDTO activity = new JournalistActivityUpsertDTO();
+        activity.setMediaId(mediaId);
+        activity.setRole("Reporter");
+        activity.setSpecificEmail("alice.green@press.com");
+        activity.setSpecificPhone("+33611111111");
+        activity.setThemeIds(List.of(themeId));
+
+        JournalistCreateDTO dto = new JournalistCreateDTO();
+        dto.setFirstName("Bob");
+        dto.setLastName("Smith");
+        dto.setActivities(List.of(activity));
+
+        CreateJournalistCommand cmd = mapper.toCommand(dto);
+
+        assertThat(cmd.activities()).hasSize(1);
+        assertThat(cmd.activities().getFirst().mediaId()).isEqualTo(mediaId);
+        assertThat(cmd.activities().getFirst().role()).isEqualTo("Reporter");
+        assertThat(cmd.activities().getFirst().themeIds()).containsExactly(themeId);
+    }
+
+    @Test
     void toCommand_createJournalist_withNullDto_returnsNull() {
-        assertThat(mapper.toCommand(null)).isNull();
+        assertThat(mapper.toCommand((JournalistCreateDTO) null)).isNull();
     }
 }

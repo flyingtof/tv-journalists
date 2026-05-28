@@ -5,13 +5,16 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.terrevivante.tvjournalists.api.dto.InteractionCreateDTO;
 import org.terrevivante.tvjournalists.api.dto.InteractionDTO;
+import org.terrevivante.tvjournalists.api.dto.JournalistActivityUpsertDTO;
 import org.terrevivante.tvjournalists.api.dto.JournalistCreateDTO;
 import org.terrevivante.tvjournalists.api.dto.JournalistListItemDTO;
 import org.terrevivante.tvjournalists.api.dto.JournalistProfileActivityDTO;
 import org.terrevivante.tvjournalists.api.dto.JournalistProfileDTO;
 import org.terrevivante.tvjournalists.api.dto.ThemeDTO;
 import org.terrevivante.tvjournalists.application.command.CreateJournalistCommand;
+import org.terrevivante.tvjournalists.application.command.JournalistActivityUpsertCommand;
 import org.terrevivante.tvjournalists.application.command.LogInteractionCommand;
+import org.terrevivante.tvjournalists.application.command.UpdateJournalistCommand;
 import org.terrevivante.tvjournalists.application.readmodel.ActivityView;
 import org.terrevivante.tvjournalists.application.readmodel.JournalistListItemView;
 import org.terrevivante.tvjournalists.application.readmodel.JournalistProfileView;
@@ -48,8 +51,20 @@ public interface JournalistMapper {
 
     InteractionDTO toDto(InteractionLog log);
 
-    @Mapping(target = "activities", ignore = true)
     CreateJournalistCommand toCommand(JournalistCreateDTO dto);
+
+    JournalistActivityUpsertCommand toActivityCommand(JournalistActivityUpsertDTO dto);
+
+    default UpdateJournalistCommand toCommand(UUID id, JournalistCreateDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+        return mapToUpdateJournalistCommand(id, dto);
+    }
+
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "activities", source = "dto.activities")
+    UpdateJournalistCommand mapToUpdateJournalistCommand(UUID id, JournalistCreateDTO dto);
 
     /** Null-guards {@code dto} before delegating to the generated multi-source method. */
     default LogInteractionCommand toCommand(UUID journalistId, InteractionCreateDTO dto) {

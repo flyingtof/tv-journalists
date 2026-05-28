@@ -3,10 +3,12 @@ package org.terrevivante.tvjournalists.api.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,9 +22,11 @@ import org.terrevivante.tvjournalists.api.mapper.JournalistMapper;
 import org.terrevivante.tvjournalists.application.readmodel.JournalistListItemView;
 import org.terrevivante.tvjournalists.application.readmodel.JournalistProfileView;
 import org.terrevivante.tvjournalists.application.usecase.CreateJournalistUseCase;
+import org.terrevivante.tvjournalists.application.usecase.DeleteJournalistUseCase;
 import org.terrevivante.tvjournalists.application.usecase.GetJournalistProfileUseCase;
 import org.terrevivante.tvjournalists.application.usecase.LogInteractionUseCase;
 import org.terrevivante.tvjournalists.application.usecase.SearchJournalistListUseCase;
+import org.terrevivante.tvjournalists.application.usecase.UpdateJournalistUseCase;
 import org.terrevivante.tvjournalists.domain.model.InteractionLog;
 import org.terrevivante.tvjournalists.domain.model.Journalist;
 import org.terrevivante.tvjournalists.domain.query.JournalistSearchCriteria;
@@ -40,17 +44,23 @@ import java.util.UUID;
 public class JournalistController {
 
     private final CreateJournalistUseCase createJournalistUseCase;
+    private final UpdateJournalistUseCase updateJournalistUseCase;
+    private final DeleteJournalistUseCase deleteJournalistUseCase;
     private final GetJournalistProfileUseCase getJournalistProfileUseCase;
     private final SearchJournalistListUseCase searchJournalistListUseCase;
     private final LogInteractionUseCase logInteractionUseCase;
     private final JournalistMapper journalistMapper;
 
     public JournalistController(CreateJournalistUseCase createJournalistUseCase,
+                                UpdateJournalistUseCase updateJournalistUseCase,
+                                DeleteJournalistUseCase deleteJournalistUseCase,
                                 GetJournalistProfileUseCase getJournalistProfileUseCase,
                                 SearchJournalistListUseCase searchJournalistListUseCase,
                                 LogInteractionUseCase logInteractionUseCase,
                                 JournalistMapper journalistMapper) {
         this.createJournalistUseCase = createJournalistUseCase;
+        this.updateJournalistUseCase = updateJournalistUseCase;
+        this.deleteJournalistUseCase = deleteJournalistUseCase;
         this.getJournalistProfileUseCase = getJournalistProfileUseCase;
         this.searchJournalistListUseCase = searchJournalistListUseCase;
         this.logInteractionUseCase = logInteractionUseCase;
@@ -61,6 +71,20 @@ public class JournalistController {
     public ResponseEntity<JournalistProfileDTO> createJournalist(@RequestBody JournalistCreateDTO journalistCreateDTO) {
         Journalist savedJournalist = createJournalistUseCase.create(journalistMapper.toCommand(journalistCreateDTO));
         return ResponseEntity.status(HttpStatus.CREATED).body(journalistMapper.toProfileDto(savedJournalist));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<JournalistProfileDTO> updateJournalist(
+            @PathVariable UUID id,
+            @RequestBody JournalistCreateDTO journalistCreateDTO) {
+        Journalist savedJournalist = updateJournalistUseCase.update(journalistMapper.toCommand(id, journalistCreateDTO));
+        return ResponseEntity.ok(journalistMapper.toProfileDto(savedJournalist));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteJournalist(@PathVariable UUID id) {
+        deleteJournalistUseCase.delete(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")
