@@ -98,6 +98,21 @@ class JournalistControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
+    void shouldForbidPlainUserFromCreatingJournalist() throws Exception {
+        mockMvc.perform(post("/api/v1/journalists")
+                .with(user("plain-user").roles("USER"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "firstName": "Bob",
+                      "lastName": "Smith",
+                      "globalEmail": "bob@example.com"
+                    }
+                    """))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
     @WithMockUser
     void shouldReturn400WhenPageIsNegative() throws Exception {
         mockMvc.perform(get("/api/v1/journalists")

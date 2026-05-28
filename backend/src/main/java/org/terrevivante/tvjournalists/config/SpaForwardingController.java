@@ -13,7 +13,7 @@ class SpaForwardingController {
 
     @ResponseBody
     @GetMapping(
-        value = {"/", "/login", "/guide", "/admin/users", "/admin/themes", "/journalists/{id}"},
+        value = {"/", "/login", "/guide", "/admin/users", "/admin/themes", "/journalists/{id}", "/journalists/{id}/edit"},
         produces = MediaType.TEXT_HTML_VALUE
     )
     public ResponseEntity<Resource> serveSpaShell() {
