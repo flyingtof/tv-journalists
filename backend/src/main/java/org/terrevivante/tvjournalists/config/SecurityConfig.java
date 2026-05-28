@@ -20,7 +20,9 @@ public class SecurityConfig {
 
     private static final String ADMIN_ROLE = "ADMIN";
     private static final String THEME_MANAGER_ROLE = "THEME_MANAGER";
+    private static final String JOURNALIST_MANAGER_ROLE = "JOURNALIST_MANAGER";
     private static final String API_THEMES = "/api/v1/themes";
+    private static final String API_JOURNALISTS = "/api/v1/journalists";
 
     @Bean
     @Order(2)
@@ -37,7 +39,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, API_THEMES).hasAnyRole(ADMIN_ROLE, THEME_MANAGER_ROLE)
                 .requestMatchers(HttpMethod.PUT, API_THEMES, API_THEMES+"/**").hasAnyRole(ADMIN_ROLE, THEME_MANAGER_ROLE)
                 .requestMatchers(HttpMethod.DELETE, API_THEMES, API_THEMES+"/**").hasAnyRole(ADMIN_ROLE, THEME_MANAGER_ROLE)
-                .requestMatchers("/api/v1/**").hasAnyRole("USER", ADMIN_ROLE, THEME_MANAGER_ROLE)
+                .requestMatchers(HttpMethod.POST, API_JOURNALISTS).hasAnyRole(ADMIN_ROLE, JOURNALIST_MANAGER_ROLE)
+                .requestMatchers(HttpMethod.PUT, API_JOURNALISTS, API_JOURNALISTS + "/**").hasAnyRole(ADMIN_ROLE, JOURNALIST_MANAGER_ROLE)
+                .requestMatchers(HttpMethod.DELETE, API_JOURNALISTS, API_JOURNALISTS + "/**").hasAnyRole(ADMIN_ROLE, JOURNALIST_MANAGER_ROLE)
+                .requestMatchers("/api/v1/**").hasAnyRole("USER", ADMIN_ROLE, THEME_MANAGER_ROLE, JOURNALIST_MANAGER_ROLE)
                 .anyRequest().authenticated()
             )
             // After login, always redirect to the SPA root (never to the saved API request URL)

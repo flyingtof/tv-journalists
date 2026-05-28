@@ -10,10 +10,12 @@ export const frMessages: Messages = {
   'app.nav.userGuide': 'Guide Utilisateur',
   'app.nav.users': 'Utilisateurs',
   'app.nav.themes': 'Thèmes',
+  'app.nav.createJournalist': 'Créer un journaliste',
   'app.nav.loading': 'Chargement...',
   'app.nav.logout': 'Se déconnecter',
   'app.role.admin': 'Administrateur',
   'app.role.themeManager': 'Gestionnaire des thèmes',
+  'app.role.journalistManager': 'Gestionnaire des journalistes',
   'app.role.user': 'Utilisateur',
   
   // Protected route

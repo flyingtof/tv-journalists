@@ -2,6 +2,8 @@ import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useEffect } from 'react';
 import { JournalistSearchPage } from './pages/JournalistSearchPage';
 import { JournalistProfilePage } from './pages/JournalistProfilePage';
+import { JournalistCreatePage } from './pages/JournalistCreatePage';
+import { JournalistEditPage } from './pages/JournalistEditPage';
 import { UserGuidePage } from './pages/UserGuidePage';
 import { UserAdminPage } from './pages/UserAdminPage';
 import { ThemeAdminPage } from './pages/ThemeAdminPage';
@@ -14,6 +16,7 @@ import './styles/Layout.css';
 
 const THEME_ADMIN_ROLES: UserRole[] = ['ADMIN', 'THEME_MANAGER'];
 const USER_ADMIN_ROLES: UserRole[] = ['ADMIN'];
+const JOURNALIST_ADMIN_ROLES: UserRole[] = ['ADMIN', 'JOURNALIST_MANAGER'];
 
 function getRoleLabel(role: UserRole, t: (key: string) => string): string {
   switch (role) {
@@ -21,6 +24,8 @@ function getRoleLabel(role: UserRole, t: (key: string) => string): string {
       return t('app.role.admin');
     case 'THEME_MANAGER':
       return t('app.role.themeManager');
+    case 'JOURNALIST_MANAGER':
+      return t('app.role.journalistManager');
     default:
       return t('app.role.user');
   }
@@ -50,6 +55,7 @@ function Navigation() {
   const { t } = useI18n();
   const canManageThemes = currentUser?.roles.some((role) => THEME_ADMIN_ROLES.includes(role)) ?? false;
   const canManageUsers = currentUser?.roles.some((role) => USER_ADMIN_ROLES.includes(role)) ?? false;
+  const canManageJournalists = currentUser?.roles.some((role) => JOURNALIST_ADMIN_ROLES.includes(role)) ?? false;
 
   const roleLabels = currentUser?.roles.map((role) => ({
     code: role,
@@ -75,6 +81,11 @@ function Navigation() {
                 {canManageThemes && (
                   <Link to="/admin/themes" className="nav-link">
                     {t('app.nav.themes')}
+                  </Link>
+                )}
+                {canManageJournalists && (
+                  <Link to="/journalists/new" className="nav-link">
+                    {t('app.nav.createJournalist')}
                   </Link>
                 )}
                 <Link to="/guide" className="nav-link">
@@ -137,6 +148,10 @@ function App() {
             </Route>
             <Route element={<ProtectedRoute requiredRoles={THEME_ADMIN_ROLES} />}>
               <Route path="/admin/themes" element={<ThemeAdminPage />} />
+            </Route>
+            <Route element={<ProtectedRoute requiredRoles={JOURNALIST_ADMIN_ROLES} />}>
+              <Route path="/journalists/new" element={<JournalistCreatePage />} />
+              <Route path="/journalists/:id/edit" element={<JournalistEditPage />} />
             </Route>
           </Route>
         </Routes>

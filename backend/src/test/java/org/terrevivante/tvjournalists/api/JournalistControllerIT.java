@@ -13,6 +13,7 @@ import jakarta.persistence.EntityManager;
 
 import java.util.UUID;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -30,6 +31,23 @@ class JournalistControllerIT extends AbstractIntegrationTest {
     private EntityManager entityManager;
 
     @Test
+    void shouldAllowJournalistManagerToCreateJournalist() throws Exception {
+        mockMvc.perform(post("/api/v1/journalists")
+                .with(user("manager").roles("JOURNALIST_MANAGER"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "firstName": "Alice",
+                      "lastName": "Martin",
+                      "globalEmail": "alice@example.com",
+                      "globalPhone": "+33123456789",
+                      "activities": []
+                    }
+                    """))
+            .andExpect(status().isCreated());
+    }
+
+    @Test
     @WithMockUser
     void shouldReturnNotFoundWhenJournalistDoesNotExist() throws Exception {
         mockMvc.perform(get("/api/v1/journalists/" + UUID.randomUUID()))
@@ -37,7 +55,7 @@ class JournalistControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = "JOURNALIST_MANAGER")
     void shouldCreateJournalist() throws Exception {
         String journalistJson = """
             {
@@ -59,7 +77,7 @@ class JournalistControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = "JOURNALIST_MANAGER")
     void shouldReturnStructuredValidationErrorsWhenJournalistEmailIsInvalid() throws Exception {
         String journalistJson = """
             {
