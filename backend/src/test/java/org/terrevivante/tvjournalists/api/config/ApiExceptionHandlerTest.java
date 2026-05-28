@@ -4,6 +4,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.terrevivante.tvjournalists.api.dto.ApiError;
+import org.terrevivante.tvjournalists.application.exception.MediaNotFoundException;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -43,5 +46,13 @@ class ApiExceptionHandlerTest {
 
         assertThatThrownBy(() -> handler.handleDataIntegrityViolation(exception))
             .isSameAs(exception);
+    }
+
+    @Test
+    void shouldMapMediaNotFoundToNotFound() {
+        UUID mediaId = UUID.randomUUID();
+        assertThat(handler.handleMediaNotFound(new MediaNotFoundException(mediaId)))
+            .extracting(response -> response.getStatusCode())
+            .isEqualTo(HttpStatus.NOT_FOUND);
     }
 }
