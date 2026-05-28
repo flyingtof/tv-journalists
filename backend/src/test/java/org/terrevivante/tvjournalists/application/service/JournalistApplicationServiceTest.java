@@ -19,6 +19,8 @@ import org.terrevivante.tvjournalists.domain.query.JournalistSearchCriteria;
 import org.terrevivante.tvjournalists.domain.query.PageRequest;
 import org.terrevivante.tvjournalists.domain.query.PageResult;
 
+import org.terrevivante.tvjournalists.application.exception.MediaNotFoundException;
+import org.terrevivante.tvjournalists.application.exception.ThemeNotFoundException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -155,6 +157,88 @@ class JournalistApplicationServiceTest {
 
         assertThat(result.activities()).hasSize(1);
         verify(journalistRepository).save(any(Journalist.class));
+    }
+
+    @Test
+    void update_throwsJournalistNotFoundExceptionWhenJournalistMissing() {
+        UUID id = UUID.randomUUID();
+        when(journalistRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.update(updateCommand(id)))
+            .isInstanceOf(JournalistNotFoundException.class);
+        verifyNoInteractions(mediaRepository);
+    }
+
+    @Test
+    void delete_throwsJournalistNotFoundExceptionWhenJournalistMissing() {
+        UUID id = UUID.randomUUID();
+        when(journalistRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.delete(id))
+            .isInstanceOf(JournalistNotFoundException.class);
+        verifyNoInteractions(interactionLogRepository);
+    }
+
+    @Test
+    void create_propagatesMediaNotFoundException() {
+        UUID unknownMediaId = UUID.randomUUID();
+        CreateJournalistCommand command = new CreateJournalistCommand(
+            "Bob", "Brown", null, null,
+            List.of(new JournalistActivityUpsertCommand(null, unknownMediaId, "Reporter", null, null, List.of()))
+        );
+        when(mediaRepository.findById(unknownMediaId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.create(command))
+            .isInstanceOf(MediaNotFoundException.class);
+        verifyNoInteractions(journalistRepository);
+    }
+
+    @Test
+    void create_propagatesThemeNotFoundException() {
+        UUID unknownThemeId = UUID.randomUUID();
+        CreateJournalistCommand command = new CreateJournalistCommand(
+            "Bob", "Brown", null, null,
+            List.of(new JournalistActivityUpsertCommand(null, MEDIA_ID, "Reporter", null, null, List.of(unknownThemeId)))
+        );
+        when(mediaRepository.findById(MEDIA_ID)).thenReturn(Optional.of(SOME_MEDIA));
+        when(themeRepository.findById(unknownThemeId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.create(command))
+            .isInstanceOf(ThemeNotFoundException.class);
+        verifyNoInteractions(journalistRepository);
+    }
+
+    @Test
+    void update_propagatesMediaNotFoundException() {
+        UUID journalistId = UUID.randomUUID();
+        UUID unknownMediaId = UUID.randomUUID();
+        when(journalistRepository.findById(journalistId)).thenReturn(Optional.of(existingJournalist(journalistId)));
+        when(mediaRepository.findById(unknownMediaId)).thenReturn(Optional.empty());
+
+        UpdateJournalistCommand command = new UpdateJournalistCommand(
+            journalistId, "Alice", "Martin", null, null,
+            List.of(new JournalistActivityUpsertCommand(null, unknownMediaId, "Reporter", null, null, List.of()))
+        );
+
+        assertThatThrownBy(() -> service.update(command))
+            .isInstanceOf(MediaNotFoundException.class);
+    }
+
+    @Test
+    void update_propagatesThemeNotFoundException() {
+        UUID journalistId = UUID.randomUUID();
+        UUID unknownThemeId = UUID.randomUUID();
+        when(journalistRepository.findById(journalistId)).thenReturn(Optional.of(existingJournalist(journalistId)));
+        when(mediaRepository.findById(MEDIA_ID)).thenReturn(Optional.of(SOME_MEDIA));
+        when(themeRepository.findById(unknownThemeId)).thenReturn(Optional.empty());
+
+        UpdateJournalistCommand command = new UpdateJournalistCommand(
+            journalistId, "Alice", "Martin", null, null,
+            List.of(new JournalistActivityUpsertCommand(null, MEDIA_ID, "Reporter", null, null, List.of(unknownThemeId)))
+        );
+
+        assertThatThrownBy(() -> service.update(command))
+            .isInstanceOf(ThemeNotFoundException.class);
     }
 
     private static Journalist existingJournalist(UUID journalistId) {

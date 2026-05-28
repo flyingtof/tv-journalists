@@ -23,11 +23,14 @@ import org.terrevivante.tvjournalists.infrastructure.persistence.springdata.Spri
 import org.terrevivante.tvjournalists.infrastructure.persistence.springdata.SpringDataMediaRepository;
 import org.terrevivante.tvjournalists.infrastructure.persistence.springdata.SpringDataThemeRepository;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -126,18 +129,39 @@ public class JournalistRepositoryAdapter implements JournalistRepository {
     }
 
     private void syncActivities(JournalistEntity entity, List<Activity> activities) {
-        entity.getActivities().clear();
+        Map<UUID, ActivityEntity> existingById = entity.getActivities().stream()
+            .filter(a -> a.getId() != null)
+            .collect(java.util.stream.Collectors.toMap(ActivityEntity::getId,
+                java.util.function.Function.identity()));
+
+        Set<ActivityEntity> toKeep = new HashSet<>();
+        List<ActivityEntity> newOrder = new ArrayList<>();
+
         for (Activity activity : activities) {
-            ActivityEntity actEntity = new ActivityEntity();
-            actEntity.setJournalist(entity);
+            ActivityEntity actEntity;
+            if (activity.id() != null && existingById.containsKey(activity.id())) {
+                actEntity = existingById.get(activity.id());
+            } else {
+                actEntity = new ActivityEntity();
+                actEntity.setJournalist(entity);
+            }
             actEntity.setMedia(mediaRepo.getReferenceById(activity.media().id()));
             actEntity.setRole(activity.role());
             actEntity.setSpecificEmail(activity.specificEmail());
             actEntity.setSpecificPhone(activity.specificPhone());
+            actEntity.getThemes().clear();
             for (Theme theme : activity.themes()) {
                 actEntity.getThemes().add(themeRepo.getReferenceById(theme.id()));
             }
-            entity.getActivities().add(actEntity);
+            toKeep.add(actEntity);
+            newOrder.add(actEntity);
+        }
+
+        entity.getActivities().removeIf(a -> !toKeep.contains(a));
+        for (ActivityEntity act : newOrder) {
+            if (!entity.getActivities().contains(act)) {
+                entity.getActivities().add(act);
+            }
         }
     }
 
