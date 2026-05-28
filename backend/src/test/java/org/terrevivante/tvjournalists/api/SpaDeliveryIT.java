@@ -33,6 +33,13 @@ class SpaDeliveryIT extends AbstractIntegrationTest {
     }
 
     @Test
+    void shouldServeSpaShellForJournalistEditRoute() throws Exception {
+        mockMvc.perform(get("/journalists/abc-123/edit"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML));
+    }
+
+    @Test
     void shouldKeepUnknownApiRoutesOutOfSpaFallback() throws Exception {
         mockMvc.perform(get("/api/does-not-exist"))
             .andExpect(status().is4xxClientError());
