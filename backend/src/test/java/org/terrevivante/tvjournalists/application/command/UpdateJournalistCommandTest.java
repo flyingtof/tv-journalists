@@ -80,4 +80,13 @@ class UpdateJournalistCommandTest {
 
         assertThat(validator.validate(command)).isEmpty();
     }
+
+    @Test
+    void shouldNormalizeNullActivitiesToEmptyList() {
+        UpdateJournalistCommand command = new UpdateJournalistCommand(
+            UUID.randomUUID(), "Alice", "Martin", null, null, null
+        );
+
+        assertThat(command.activities()).isEmpty();
+    }
 }

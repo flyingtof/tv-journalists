@@ -16,4 +16,8 @@ public record UpdateJournalistCommand(
     @Email @Pattern(regexp = ".*\\S.*") String globalEmail,
     String globalPhone,
     List<@Valid JournalistActivityUpsertCommand> activities
-) {}
+) {
+    public UpdateJournalistCommand {
+        activities = activities == null ? List.of() : List.copyOf(activities);
+    }
+}
