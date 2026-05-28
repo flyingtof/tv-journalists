@@ -33,6 +33,14 @@ vi.mock('./pages/ThemeAdminPage', () => ({
   ThemeAdminPage: () => <div>Theme admin page</div>,
 }));
 
+vi.mock('./pages/JournalistCreatePage', () => ({
+  JournalistCreatePage: () => <div>Journalist create page</div>,
+}));
+
+vi.mock('./pages/JournalistEditPage', () => ({
+  JournalistEditPage: () => <div>Journalist edit page</div>,
+}));
+
 vi.mock('./pages/LoginPage', () => ({
   LoginPage: () => <div>Login page</div>,
 }));
@@ -92,5 +100,11 @@ describe('App', () => {
     expect(screen.getByRole('link', { name: 'Thèmes' })).toBeInTheDocument();
     expect(screen.getByText('Theme admin page')).toBeInTheDocument();
     expect(screen.queryByText('Login page')).not.toBeInTheDocument();
+  });
+
+  it('shows journalist management routes only for ADMIN and JOURNALIST_MANAGER', () => {
+    renderApp('/', createAuthValue(['JOURNALIST_MANAGER']));
+
+    expect(screen.getByRole('link', { name: /Créer un journaliste/i })).toBeInTheDocument();
   });
 });
