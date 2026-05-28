@@ -107,4 +107,42 @@ describe('App', () => {
 
     expect(screen.getByRole('link', { name: /Créer un journaliste/i })).toBeInTheDocument();
   });
+
+  it('shows journalist create link for ADMIN', () => {
+    renderApp('/', createAuthValue(['ADMIN']));
+
+    expect(screen.getByRole('link', { name: /Créer un journaliste/i })).toBeInTheDocument();
+  });
+
+  it('does not show journalist create link for users without the required role', () => {
+    renderApp('/', createAuthValue(['USER']));
+
+    expect(screen.queryByRole('link', { name: /Créer un journaliste/i })).not.toBeInTheDocument();
+  });
+
+  it('lets JOURNALIST_MANAGER reach the protected journalist create route', () => {
+    renderApp('/journalists/new', createAuthValue(['JOURNALIST_MANAGER']));
+
+    expect(screen.getByText('Journalist create page')).toBeInTheDocument();
+    expect(screen.queryByText('Login page')).not.toBeInTheDocument();
+  });
+
+  it('redirects USER away from the journalist create route', () => {
+    renderApp('/journalists/new', createAuthValue(['USER']));
+
+    expect(screen.queryByText('Journalist create page')).not.toBeInTheDocument();
+  });
+
+  it('lets JOURNALIST_MANAGER reach the journalist edit route', () => {
+    renderApp('/journalists/abc-123/edit', createAuthValue(['JOURNALIST_MANAGER']));
+
+    expect(screen.getByText('Journalist edit page')).toBeInTheDocument();
+    expect(screen.queryByText('Login page')).not.toBeInTheDocument();
+  });
+
+  it('redirects USER away from the journalist edit route', () => {
+    renderApp('/journalists/abc-123/edit', createAuthValue(['USER']));
+
+    expect(screen.queryByText('Journalist edit page')).not.toBeInTheDocument();
+  });
 });
