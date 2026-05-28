@@ -17,6 +17,11 @@ import org.terrevivante.tvjournalists.domain.query.PageResult;
 import org.terrevivante.tvjournalists.infrastructure.persistence.entity.ActivityEntity;
 import org.terrevivante.tvjournalists.infrastructure.persistence.entity.JournalistEntity;
 
+import org.terrevivante.tvjournalists.infrastructure.persistence.entity.InteractionLogEntity;
+import org.terrevivante.tvjournalists.infrastructure.persistence.entity.MediaEntity;
+import org.terrevivante.tvjournalists.infrastructure.persistence.entity.ThemeEntity;
+
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -141,9 +146,58 @@ class JournalistRepositoryAdapterIT extends AbstractIntegrationTest {
             .containsExactly("Climate");
     }
 
+    @Test
+    void save_updatePreservesExistingActivityIdAndInteractionReference() {
+        JournalistFixtures fixtures = new JournalistFixtures(entityManager);
+        var climate = fixtures.persistTheme("Climate " + UUID.randomUUID());
+        var rtMedia = fixtures.persistMedia("RT " + UUID.randomUUID());
+        entityManager.flush();
+        entityManager.clear();
+
+        // 1. Create journalist with one activity
+        var domainMedia = new org.terrevivante.tvjournalists.domain.model.Media(
+            rtMedia.getId(), rtMedia.getName(), rtMedia.getType(), null);
+        Activity activity = new Activity(null, null, domainMedia, "Reporter", null, null,
+            List.of(new Theme(climate.getId(), climate.getName())));
+        Journalist created = journalistRepository.save(
+            new Journalist(null, "Jean", "Dupont", null, null, null, null, List.of(activity)));
+        entityManager.flush();
+        entityManager.clear();
+
+        UUID originalActivityId = created.activities().getFirst().id();
+        assertThat(originalActivityId).isNotNull();
+
+        // 2. Create an interaction log linked to that activity
+        InteractionLogEntity log = new InteractionLogEntity();
+        log.setJournalistId(created.id());
+        log.setActivityId(originalActivityId);
+        log.setDate(LocalDate.now());
+        log.setDescription("Test interaction");
+        entityManager.persist(log);
+        entityManager.flush();
+        entityManager.clear();
+
+        // 3. Update journalist while preserving the existing activity id
+        Activity preservedActivity = new Activity(
+            originalActivityId, created.id(), domainMedia, "Presenter", null, null, List.of());
+        journalistRepository.save(
+            new Journalist(created.id(), "Jean", "Martin", null, null, null, null, List.of(preservedActivity)));
+        entityManager.flush();
+        entityManager.clear();
+
+        // 4. Verify activity id still exists and interaction log is still valid
+        Journalist reloaded = journalistRepository.findById(created.id()).orElseThrow();
+        assertThat(reloaded.activities()).hasSize(1);
+        assertThat(reloaded.activities().getFirst().id()).isEqualTo(originalActivityId);
+
+        InteractionLogEntity reloadedLog = entityManager.find(InteractionLogEntity.class, log.getId());
+        assertThat(reloadedLog).isNotNull();
+        assertThat(reloadedLog.getActivityId()).isEqualTo(originalActivityId);
+    }
+
     private void persistActivity(JournalistEntity journalist,
-                                 org.terrevivante.tvjournalists.infrastructure.persistence.entity.MediaEntity media,
-                                 org.terrevivante.tvjournalists.infrastructure.persistence.entity.ThemeEntity... themes) {
+                                 MediaEntity media,
+                                 ThemeEntity... themes) {
         ActivityEntity activity = new ActivityEntity();
         activity.setJournalist(journalist);
         activity.setMedia(media);

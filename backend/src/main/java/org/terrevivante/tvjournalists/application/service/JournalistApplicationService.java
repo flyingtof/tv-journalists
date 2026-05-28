@@ -1,6 +1,5 @@
 package org.terrevivante.tvjournalists.application.service;
 
-import org.springframework.transaction.annotation.Transactional;
 import org.terrevivante.tvjournalists.application.command.CreateJournalistCommand;
 import org.terrevivante.tvjournalists.application.command.JournalistActivityUpsertCommand;
 import org.terrevivante.tvjournalists.application.command.UpdateJournalistCommand;
@@ -51,7 +50,6 @@ public class JournalistApplicationService
     }
 
     @Override
-    @Transactional
     public Journalist create(CreateJournalistCommand command) {
         applicationValidator.validate(command);
         Journalist journalist = new Journalist(
@@ -68,7 +66,6 @@ public class JournalistApplicationService
     }
 
     @Override
-    @Transactional
     public Journalist update(UpdateJournalistCommand command) {
         applicationValidator.validate(command);
         Journalist existing = getById(command.id());
@@ -86,7 +83,6 @@ public class JournalistApplicationService
     }
 
     @Override
-    @Transactional
     public void delete(UUID id) {
         getById(id);
         interactionLogRepository.deleteByJournalistId(id);
