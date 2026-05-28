@@ -6,4 +6,5 @@ import org.terrevivante.tvjournalists.infrastructure.persistence.entity.Interact
 import java.util.UUID;
 
 public interface SpringDataInteractionLogRepository extends JpaRepository<InteractionLogEntity, UUID> {
+    void deleteByJournalistId(UUID journalistId);
 }

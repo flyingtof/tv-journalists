@@ -7,6 +7,8 @@ import org.terrevivante.tvjournalists.domain.port.InteractionLogRepository;
 import org.terrevivante.tvjournalists.infrastructure.persistence.mapper.PersistenceJournalistMapper;
 import org.terrevivante.tvjournalists.infrastructure.persistence.springdata.SpringDataInteractionLogRepository;
 
+import java.util.UUID;
+
 @Component
 @Transactional
 public class InteractionLogRepositoryAdapter implements InteractionLogRepository {
@@ -24,5 +26,10 @@ public class InteractionLogRepositoryAdapter implements InteractionLogRepository
     public InteractionLog save(InteractionLog interactionLog) {
         var entity = mapper.toEntity(interactionLog);
         return mapper.toDomain(repo.save(entity));
+    }
+
+    @Override
+    public void deleteByJournalistId(UUID journalistId) {
+        repo.deleteByJournalistId(journalistId);
     }
 }

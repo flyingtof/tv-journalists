@@ -14,5 +14,6 @@ import java.util.UUID;
 public interface JournalistRepository {
     Journalist save(Journalist journalist);
     Optional<Journalist> findById(UUID id);
+    void deleteById(UUID id);
     PageResult<Journalist> search(JournalistSearchCriteria criteria, PageRequest pageRequest);
 }
