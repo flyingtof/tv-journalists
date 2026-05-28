@@ -108,6 +108,39 @@ class JournalistRepositoryAdapterIT extends AbstractIntegrationTest {
             .containsExactlyInAnyOrder(financeVerteName, deforestationName);
     }
 
+    @Test
+    void save_persistsActivitiesAndThemes() {
+        JournalistFixtures fixtures = new JournalistFixtures(entityManager);
+        var climate = fixtures.persistTheme("Climate");
+        var rtMedia = fixtures.persistMedia("RT");
+        entityManager.flush();
+        entityManager.clear();
+
+        Activity activity = new Activity(
+            null,
+            null,
+            new org.terrevivante.tvjournalists.domain.model.Media(rtMedia.getId(), rtMedia.getName(), rtMedia.getType(), null),
+            "Reporter",
+            null,
+            null,
+            List.of(new Theme(climate.getId(), climate.getName()))
+        );
+        Journalist toSave = new Journalist(null, "Jean", "Dupont", null, null, null, null, List.of(activity));
+
+        Journalist saved = journalistRepository.save(toSave);
+        entityManager.flush();
+        entityManager.clear();
+
+        Journalist reloaded = journalistRepository.findById(saved.id()).orElseThrow();
+
+        assertThat(reloaded.activities()).hasSize(1);
+        assertThat(reloaded.activities().getFirst().media().name()).isEqualTo("RT");
+        assertThat(reloaded.activities().getFirst().role()).isEqualTo("Reporter");
+        assertThat(reloaded.activities().getFirst().themes())
+            .extracting(Theme::name)
+            .containsExactly("Climate");
+    }
+
     private void persistActivity(JournalistEntity journalist,
                                  org.terrevivante.tvjournalists.infrastructure.persistence.entity.MediaEntity media,
                                  org.terrevivante.tvjournalists.infrastructure.persistence.entity.ThemeEntity... themes) {
