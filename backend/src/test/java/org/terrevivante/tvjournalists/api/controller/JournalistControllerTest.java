@@ -5,15 +5,22 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.terrevivante.tvjournalists.api.dto.PageResponse;
 import org.terrevivante.tvjournalists.api.mapper.JournalistMapper;
 import org.terrevivante.tvjournalists.application.readmodel.JournalistListItemView;
+import org.terrevivante.tvjournalists.application.usecase.DeleteJournalistUseCase;
 import org.terrevivante.tvjournalists.application.usecase.CreateJournalistUseCase;
 import org.terrevivante.tvjournalists.application.usecase.GetJournalistProfileUseCase;
 import org.terrevivante.tvjournalists.application.usecase.LogInteractionUseCase;
 import org.terrevivante.tvjournalists.application.usecase.SearchJournalistListUseCase;
+import org.terrevivante.tvjournalists.application.usecase.UpdateJournalistUseCase;
 import org.terrevivante.tvjournalists.domain.query.PageRequest;
 import org.terrevivante.tvjournalists.domain.query.PageResult;
 import org.terrevivante.tvjournalists.domain.query.SortDirection;
+import org.terrevivante.tvjournalists.api.dto.JournalistCreateDTO;
+import org.terrevivante.tvjournalists.api.dto.JournalistProfileDTO;
+import org.terrevivante.tvjournalists.application.command.UpdateJournalistCommand;
+import org.terrevivante.tvjournalists.domain.model.Journalist;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -27,13 +34,15 @@ import static org.mockito.Mockito.when;
 class JournalistControllerTest {
 
     private final CreateJournalistUseCase createJournalistUseCase = mock(CreateJournalistUseCase.class);
+    private final UpdateJournalistUseCase updateJournalistUseCase = mock(UpdateJournalistUseCase.class);
+    private final DeleteJournalistUseCase deleteJournalistUseCase = mock(DeleteJournalistUseCase.class);
     private final GetJournalistProfileUseCase getJournalistUseCase = mock(GetJournalistProfileUseCase.class);
     private final SearchJournalistListUseCase searchJournalistsUseCase = mock(SearchJournalistListUseCase.class);
     private final LogInteractionUseCase logInteractionUseCase = mock(LogInteractionUseCase.class);
     private final JournalistMapper journalistMapper = mock(JournalistMapper.class);
     private final JournalistController controller = new JournalistController(
-            createJournalistUseCase, getJournalistUseCase, searchJournalistsUseCase,
-            logInteractionUseCase, journalistMapper);
+            createJournalistUseCase, updateJournalistUseCase, deleteJournalistUseCase,
+            getJournalistUseCase, searchJournalistsUseCase, logInteractionUseCase, journalistMapper);
 
     @Test
     void searchJournalists_mapsExplicitPageAndSizeToPageRequest() {
@@ -151,6 +160,36 @@ class JournalistControllerTest {
         assertThat(body.first()).isTrue();
         assertThat(body.last()).isTrue(); // only 1 page
         assertThat(body.totalPages()).isEqualTo(1);
+    }
+
+    @Test
+    void updateJournalist_delegatesToUseCase() {
+        UUID id = UUID.randomUUID();
+        JournalistCreateDTO dto = new JournalistCreateDTO();
+        Journalist saved = new Journalist(id, "Alice", "Green", null, null, null, null, List.of());
+        when(journalistMapper.toCommand(id, dto)).thenReturn(new UpdateJournalistCommand(
+            id, "Alice", "Green", null, null, List.of()
+        ));
+        when(updateJournalistUseCase.update(any())).thenReturn(saved);
+        when(journalistMapper.toProfileDto(saved)).thenReturn(
+            new JournalistProfileDTO(id, "Alice", "Green", null, null, List.of())
+        );
+
+        var response = controller.updateJournalist(id, dto);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody().id()).isEqualTo(id);
+        verify(updateJournalistUseCase).update(any(UpdateJournalistCommand.class));
+    }
+
+    @Test
+    void deleteJournalist_delegatesToUseCase() {
+        UUID id = UUID.randomUUID();
+
+        var response = controller.deleteJournalist(id);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(204);
+        verify(deleteJournalistUseCase).delete(id);
     }
 
     @Test

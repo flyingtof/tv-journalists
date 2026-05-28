@@ -11,10 +11,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -74,6 +78,113 @@ class JournalistControllerIT extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.lastName").value("Doe"))
             .andExpect(jsonPath("$.globalEmail").value("john.doe@example.com"))
             .andExpect(jsonPath("$.activities").isArray());
+    }
+
+    @Test
+    @WithMockUser(roles = "JOURNALIST_MANAGER")
+    void shouldCreateJournalistWithActivities() throws Exception {
+        JournalistFixtures fixtures = new JournalistFixtures(entityManager);
+        var theme = fixtures.persistTheme("Biodiversity");
+        var media = fixtures.persistMedia("Green Press", org.terrevivante.tvjournalists.domain.model.MediaType.PRESS);
+        entityManager.flush();
+        entityManager.clear();
+
+        mockMvc.perform(post("/api/v1/journalists")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "firstName": "John",
+                        "lastName": "Doe",
+                        "globalEmail": "john.doe@example.com",
+                        "activities": [{
+                            "mediaId": "%s",
+                            "role": "Reporter",
+                            "specificEmail": "john@press.com",
+                            "specificPhone": "+33111111111",
+                            "themeIds": ["%s"]
+                        }]
+                    }
+                    """.formatted(media.getId(), theme.getId())))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.activities").isArray())
+            .andExpect(jsonPath("$.activities[0].mediaName").value("Green Press"))
+            .andExpect(jsonPath("$.activities[0].role").value("Reporter"))
+            .andExpect(jsonPath("$.activities[0].specificEmail").value("john@press.com"))
+            .andExpect(jsonPath("$.activities[0].themes[0].name").value("Biodiversity"));
+    }
+
+    @Test
+    @WithMockUser(roles = "JOURNALIST_MANAGER")
+    void shouldUpdateJournalist() throws Exception {
+        JournalistFixtures fixtures = new JournalistFixtures(entityManager);
+        var theme = fixtures.persistTheme("Biodiversity");
+        var media = fixtures.persistMedia("Green Press", org.terrevivante.tvjournalists.domain.model.MediaType.PRESS);
+        var journalist = fixtures.persistJournalist("John", "Doe");
+        entityManager.flush();
+        entityManager.clear();
+
+        mockMvc.perform(put("/api/v1/journalists/" + journalist.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "firstName": "Jane",
+                        "lastName": "Doe",
+                        "globalEmail": "jane.doe@example.com",
+                        "activities": [{
+                            "mediaId": "%s",
+                            "role": "Editor",
+                            "themeIds": ["%s"]
+                        }]
+                    }
+                    """.formatted(media.getId(), theme.getId())))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.firstName").value("Jane"))
+            .andExpect(jsonPath("$.activities[0].mediaName").value("Green Press"))
+            .andExpect(jsonPath("$.activities[0].role").value("Editor"));
+    }
+
+    @Test
+    @WithMockUser(roles = "JOURNALIST_MANAGER")
+    void shouldDeleteJournalistAndItsInteractions() throws Exception {
+        JournalistFixtures fixtures = new JournalistFixtures(entityManager);
+        var theme = fixtures.persistTheme("Biodiversity");
+        var media = fixtures.persistMedia("Green Press", org.terrevivante.tvjournalists.domain.model.MediaType.PRESS);
+        var journalist = fixtures.persistJournalistWithActivity("John", "Doe", media, theme);
+        entityManager.flush();
+        entityManager.clear();
+
+        UUID activityId = entityManager.createQuery(
+                "select a.id from ActivityEntity a where a.journalist.id = :journalistId", UUID.class)
+            .setParameter("journalistId", journalist.getId())
+            .getSingleResult();
+
+        entityManager.createNativeQuery("""
+            insert into interaction_log (id, journalist_id, activity_id, date, description, created_at)
+            values (?, ?, ?, ?, ?, now())
+            """)
+            .setParameter(1, UUID.randomUUID())
+            .setParameter(2, journalist.getId())
+            .setParameter(3, activityId)
+            .setParameter(4, LocalDate.now())
+            .setParameter(5, "Test interaction")
+            .executeUpdate();
+        entityManager.flush();
+        entityManager.clear();
+
+        mockMvc.perform(delete("/api/v1/journalists/" + journalist.getId()))
+            .andExpect(status().isNoContent());
+
+        Long remainingJournalists = entityManager.createQuery(
+                "select count(j) from JournalistEntity j where j.id = :id", Long.class)
+            .setParameter("id", journalist.getId())
+            .getSingleResult();
+        Long remainingInteractions = entityManager.createQuery(
+                "select count(l) from InteractionLogEntity l where l.journalistId = :id", Long.class)
+            .setParameter("id", journalist.getId())
+            .getSingleResult();
+
+        assertThat(remainingJournalists).isZero();
+        assertThat(remainingInteractions).isZero();
     }
 
     @Test
