@@ -86,6 +86,21 @@ class JournalistApplicationServiceTest {
     }
 
     @Test
+    void shouldCreateJournalistWithResolvedActivities() {
+        CreateJournalistCommand command = new CreateJournalistCommand(
+            "Bob", "Brown", "bob@example.com", null,
+            List.of(new JournalistActivityUpsertCommand(null, MEDIA_ID, "Reporter", null, null, List.of()))
+        );
+        when(mediaRepository.findById(MEDIA_ID)).thenReturn(Optional.of(SOME_MEDIA));
+        when(journalistRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Journalist result = service.create(command);
+
+        assertThat(result.activities()).hasSize(1);
+        assertThat(result.activities().get(0).media()).isEqualTo(SOME_MEDIA);
+    }
+
+    @Test
     void shouldRejectInvalidCreateCommandBeforeRepositoryInteraction() {
         CreateJournalistCommand command = new CreateJournalistCommand("  ", "Brown", null, null, List.of());
 

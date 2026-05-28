@@ -62,7 +62,7 @@ public class JournalistApplicationService
             blankToNull(command.globalPhone()),
             null,
             null,
-            List.of()
+            resolveActivities(null, command.activities())
         );
         return journalistRepository.save(journalist);
     }

@@ -13,6 +13,7 @@ import org.terrevivante.tvjournalists.api.dto.ValidationErrorResponse;
 import org.terrevivante.tvjournalists.application.exception.ActivityNotFoundException;
 import org.terrevivante.tvjournalists.application.exception.ActivityNotOwnedByJournalistException;
 import org.terrevivante.tvjournalists.application.exception.JournalistNotFoundException;
+import org.terrevivante.tvjournalists.application.exception.MediaNotFoundException;
 import org.terrevivante.tvjournalists.application.exception.ThemeAlreadyExistsException;
 import org.terrevivante.tvjournalists.application.exception.ThemeInUseException;
 import org.terrevivante.tvjournalists.application.exception.ThemeNotFoundException;
@@ -52,6 +53,11 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(JournalistNotFoundException.class)
     public ResponseEntity<Void> handleJournalistNotFound(JournalistNotFoundException exception) {
+        return ResponseEntity.notFound().build();
+    }
+
+    @ExceptionHandler(MediaNotFoundException.class)
+    public ResponseEntity<Void> handleMediaNotFound(MediaNotFoundException exception) {
         return ResponseEntity.notFound().build();
     }
 
