@@ -8,6 +8,8 @@ import org.terrevivante.tvjournalists.infrastructure.persistence.mapper.Persiste
 import org.terrevivante.tvjournalists.infrastructure.persistence.springdata.SpringDataMediaRepository;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Component
 @Transactional(readOnly = true)
@@ -24,5 +26,10 @@ public class MediaRepositoryAdapter implements MediaRepository {
     @Override
     public List<Media> findAll() {
         return repo.findAll().stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public Optional<Media> findById(UUID id) {
+        return repo.findById(id).map(mapper::toDomain);
     }
 }

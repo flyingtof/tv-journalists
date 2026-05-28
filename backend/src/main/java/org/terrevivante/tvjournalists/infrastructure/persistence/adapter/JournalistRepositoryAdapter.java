@@ -114,6 +114,11 @@ public class JournalistRepositoryAdapter implements JournalistRepository {
         return mapper.toDomain(saved);
     }
 
+    @Override
+    public void deleteById(UUID id) {
+        journalistRepo.deleteById(id);
+    }
+
     private static Sort toSpringSort(List<SortOrder> sortOrders) {
         if (sortOrders == null || sortOrders.isEmpty()) return Sort.unsorted();
         List<Sort.Order> springOrders = sortOrders.stream().map(so -> {

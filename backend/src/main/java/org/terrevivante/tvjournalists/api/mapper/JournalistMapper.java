@@ -48,6 +48,7 @@ public interface JournalistMapper {
 
     InteractionDTO toDto(InteractionLog log);
 
+    @Mapping(target = "activities", ignore = true)
     CreateJournalistCommand toCommand(JournalistCreateDTO dto);
 
     /** Null-guards {@code dto} before delegating to the generated multi-source method. */

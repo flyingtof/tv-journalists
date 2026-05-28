@@ -30,8 +30,12 @@ public class ApplicationBeansConfig {
     @Bean
     public JournalistApplicationService journalistApplicationService(
             JournalistRepository journalistRepository,
+            InteractionLogRepository interactionLogRepository,
+            MediaRepository mediaRepository,
+            ThemeRepository themeRepository,
             ApplicationValidator applicationValidator) {
-        return new JournalistApplicationService(journalistRepository, applicationValidator);
+        return new JournalistApplicationService(journalistRepository, interactionLogRepository,
+            mediaRepository, themeRepository, applicationValidator);
     }
 
     @Bean
