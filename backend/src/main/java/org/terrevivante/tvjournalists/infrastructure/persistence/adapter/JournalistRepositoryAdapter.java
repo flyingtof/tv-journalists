@@ -12,12 +12,16 @@ import org.terrevivante.tvjournalists.domain.query.PageRequest;
 import org.terrevivante.tvjournalists.domain.query.PageResult;
 import org.terrevivante.tvjournalists.domain.query.SortDirection;
 import org.terrevivante.tvjournalists.domain.query.SortOrder;
+import org.terrevivante.tvjournalists.domain.model.Activity;
+import org.terrevivante.tvjournalists.domain.model.Theme;
 import org.terrevivante.tvjournalists.infrastructure.persistence.entity.ActivityEntity;
 import org.terrevivante.tvjournalists.infrastructure.persistence.entity.JournalistEntity;
 import org.terrevivante.tvjournalists.infrastructure.persistence.mapper.PersistenceJournalistMapper;
 import org.terrevivante.tvjournalists.infrastructure.persistence.specification.JournalistEntitySpecifications;
 import org.terrevivante.tvjournalists.infrastructure.persistence.springdata.SpringDataActivityRepository;
 import org.terrevivante.tvjournalists.infrastructure.persistence.springdata.SpringDataJournalistRepository;
+import org.terrevivante.tvjournalists.infrastructure.persistence.springdata.SpringDataMediaRepository;
+import org.terrevivante.tvjournalists.infrastructure.persistence.springdata.SpringDataThemeRepository;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -32,13 +36,19 @@ public class JournalistRepositoryAdapter implements JournalistRepository {
 
     private final SpringDataJournalistRepository journalistRepo;
     private final SpringDataActivityRepository activityRepo;
+    private final SpringDataMediaRepository mediaRepo;
+    private final SpringDataThemeRepository themeRepo;
     private final PersistenceJournalistMapper mapper;
 
     public JournalistRepositoryAdapter(SpringDataJournalistRepository journalistRepo,
                                        SpringDataActivityRepository activityRepo,
+                                       SpringDataMediaRepository mediaRepo,
+                                       SpringDataThemeRepository themeRepo,
                                        PersistenceJournalistMapper mapper) {
         this.journalistRepo = journalistRepo;
         this.activityRepo = activityRepo;
+        this.mediaRepo = mediaRepo;
+        this.themeRepo = themeRepo;
         this.mapper = mapper;
     }
 
@@ -110,8 +120,25 @@ public class JournalistRepositoryAdapter implements JournalistRepository {
         entity.setLastName(journalist.lastName());
         entity.setGlobalEmail(journalist.globalEmail());
         entity.setGlobalPhone(journalist.globalPhone());
+        syncActivities(entity, journalist.activities());
         JournalistEntity saved = journalistRepo.save(entity);
         return mapper.toDomain(saved);
+    }
+
+    private void syncActivities(JournalistEntity entity, List<Activity> activities) {
+        entity.getActivities().clear();
+        for (Activity activity : activities) {
+            ActivityEntity actEntity = new ActivityEntity();
+            actEntity.setJournalist(entity);
+            actEntity.setMedia(mediaRepo.getReferenceById(activity.media().id()));
+            actEntity.setRole(activity.role());
+            actEntity.setSpecificEmail(activity.specificEmail());
+            actEntity.setSpecificPhone(activity.specificPhone());
+            for (Theme theme : activity.themes()) {
+                actEntity.getThemes().add(themeRepo.getReferenceById(theme.id()));
+            }
+            entity.getActivities().add(actEntity);
+        }
     }
 
     @Override
