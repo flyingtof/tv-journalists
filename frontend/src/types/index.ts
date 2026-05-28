@@ -47,7 +47,7 @@ export interface Page<T> {
   empty: boolean;
 }
 
-export type UserRole = 'ADMIN' | 'THEME_MANAGER' | 'USER';
+export type UserRole = 'ADMIN' | 'THEME_MANAGER' | 'JOURNALIST_MANAGER' | 'USER';
 
 export interface UserSummary {
   id: string;
