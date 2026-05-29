@@ -57,6 +57,10 @@ export const frMessages: Messages = {
   'journalistProfile.activities.title': 'Activités Média',
   'journalistProfile.activities.empty': 'Aucune activité média enregistrée.',
   'journalistProfile.back': 'Retour',
+  'journalistProfile.edit': 'Modifier',
+  'journalistProfile.delete': 'Supprimer',
+  'journalistProfile.deleteConfirm': 'Êtes-vous sûr de vouloir supprimer ce journaliste? Cette action ne peut pas être annulée.',
+  'journalistProfile.deleteError': 'Impossible de supprimer le journaliste. Veuillez réessayer.',
   
   // Journalist list
   'journalistList.empty': 'Aucun journaliste trouvé.',
@@ -87,11 +91,11 @@ export const frMessages: Messages = {
   'journalistForm.activityEmail': 'Email spécifique {index}',
   'journalistForm.activityPhone': 'Téléphone spécifique {index}',
   'journalistForm.activityThemes': 'Thématiques {index}',
-  'journalistForm.labelFirstName': 'First Name',
-  'journalistForm.labelLastName': 'Last Name',
+  'journalistForm.labelFirstName': 'Prénom',
+  'journalistForm.labelLastName': 'Nom',
   'journalistForm.labelEmail': 'Email',
-  'journalistForm.labelPhone': 'Phone',
-  'journalistForm.submit': 'Save Profile',
+  'journalistForm.labelPhone': 'Téléphone',
+  'journalistForm.submit': 'Sauver',
 
   // User Guide page
   'guide.title': 'Guide Utilisateur - TV Journalists',
