@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import type { JournalistProfile } from '../types';
 import { ApiError, fetchWithAuth, UnauthorizedError } from '../api/apiClient';
 import { useI18n } from '../i18n/useI18n';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Profile.css';
 
 interface SearchLocationState {
@@ -21,10 +22,13 @@ const isSearchLocationState = (state: unknown): state is SearchLocationState => 
 export const JournalistProfilePage: React.FC = () => {
   const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
+  const { currentUser } = useAuth();
   const [journalist, setJournalist] = useState<JournalistProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [visible, setVisible] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  const canEdit = currentUser?.roles.includes('JOURNALIST_MANAGER') || currentUser?.roles.includes('ADMIN');
 
   useEffect(() => {
     const fetchJournalist = async () => {
@@ -74,6 +78,9 @@ export const JournalistProfilePage: React.FC = () => {
         <h1 className="profile-title">
           {journalist.firstName} {journalist.lastName}
         </h1>
+        {canEdit && (
+          <EditButton journalistId={journalist.id} />
+        )}
       </div>
       
       <div className="profile-card">
@@ -141,5 +148,31 @@ const BackButton: React.FC = () => {
     <button onClick={handleBack} className="back-button" aria-label={t('journalistProfile.back')}>
       ← {t('journalistProfile.back')}
     </button>
+  );
+};
+
+interface EditButtonProps {
+  journalistId: string;
+}
+
+const EditButton: React.FC<EditButtonProps> = ({ journalistId }) => {
+  const { t } = useI18n();
+  const navigate = useNavigate();
+
+  const handleEdit = () => {
+    navigate(`/journalists/${journalistId}/edit`);
+  };
+
+  return (
+    <a 
+      href={`/journalists/${journalistId}/edit`}
+      className="edit-link"
+      onClick={(e) => {
+        e.preventDefault();
+        handleEdit();
+      }}
+    >
+      {t('journalistProfile.edit')}
+    </a>
   );
 };
