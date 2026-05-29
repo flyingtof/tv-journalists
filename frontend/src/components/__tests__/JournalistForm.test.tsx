@@ -17,6 +17,8 @@ describe('JournalistForm', () => {
     expect(screen.getByLabelText(/^Nom$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^Email$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^Téléphone$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Prénom$/i)).toHaveClass('journalist-form-input');
+    expect(screen.getByLabelText(/^Nom$/i)).toHaveClass('journalist-form-input');
   });
 
   it('declares autocomplete metadata on personal contact fields', () => {
@@ -88,7 +90,8 @@ describe('JournalistForm', () => {
 
     expect(screen.getByLabelText(/Média/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Rôle/i)).toBeInTheDocument();
-    expect(screen.getByText(/Thématiques/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /^Activités$/i })).toBeInTheDocument();
+    expect(screen.getByText(/^Thématiques 1$/i)).toBeInTheDocument();
   });
 
   describe('Media autocomplete', () => {

@@ -46,6 +46,8 @@ describe('JournalistCreatePage', () => {
     );
 
     expect(await screen.findByRole('heading', { name: 'Créer un journaliste' })).toBeInTheDocument();
+    expect(screen.getByText('Renseignez les informations du journaliste et ses activités.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Créer un journaliste' }).closest('.journalist-editor-card')).not.toBeNull();
     expect(fetchWithAuth).toHaveBeenCalledWith('/api/v1/media');
     expect(fetchWithAuth).toHaveBeenCalledWith('/api/v1/themes');
   });

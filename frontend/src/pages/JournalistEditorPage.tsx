@@ -159,18 +159,24 @@ export const JournalistEditorPage: React.FC<JournalistEditorPageProps> = ({ mode
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-      {saveError && <div role="alert">{saveError}</div>}
-      {initialData && (
-        <JournalistForm
-          onSubmit={handleSubmit}
-          initialData={initialData}
-          mediaOptions={mediaOptions}
-          themeOptions={themeOptions}
-          isSubmitting={saving}
-        />
-      )}
+    <div className="journalist-editor-page">
+      <section className="journalist-editor-card journalist-editor-intro">
+        <h1>{title}</h1>
+        <p>{t('journalistEditor.intro')}</p>
+      </section>
+
+      <section className="journalist-editor-card">
+        {saveError && <div role="alert">{saveError}</div>}
+        {initialData && (
+          <JournalistForm
+            onSubmit={handleSubmit}
+            initialData={initialData}
+            mediaOptions={mediaOptions}
+            themeOptions={themeOptions}
+            isSubmitting={saving}
+          />
+        )}
+      </section>
     </div>
   );
 };

@@ -59,6 +59,8 @@ describe('JournalistEditPage', () => {
     );
 
     expect(await screen.findByRole('heading', { name: 'Modifier un journaliste' })).toBeInTheDocument();
+    expect(screen.getByText('Renseignez les informations du journaliste et ses activités.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Modifier un journaliste' }).closest('.journalist-editor-card')).not.toBeNull();
     expect(fetchWithAuth).toHaveBeenCalledWith('/api/v1/journalists/123');
   });
 });
