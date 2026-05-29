@@ -1,8 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useI18n } from '../i18n/useI18n';
 import { Autocomplete } from './Autocomplete';
 import '../styles/JournalistForm.css';
 import type { JournalistActivityWrite, JournalistWrite, LookupOption } from '../types';
+
+const EMPTY_LOOKUP_OPTIONS: LookupOption[] = [];
 
 interface Props {
   onSubmit: (data: JournalistWrite) => void;
@@ -32,23 +34,27 @@ const normalizeInitialData = (initialData?: JournalistWrite): JournalistWrite =>
     : [],
 });
 
+const buildMediaDrafts = (data: JournalistWrite, mediaOptions: LookupOption[]) =>
+  data.activities.map((activity) => mediaOptions.find((media) => media.id === activity.mediaId)?.name ?? '');
+
 const isBlankActivity = (activity: JournalistActivityWrite) =>
   !activity.mediaId && !activity.role && !activity.specificEmail && !activity.specificPhone && activity.themeIds.length === 0;
 
 export const JournalistForm: React.FC<Props> = ({
   onSubmit,
   initialData,
-  mediaOptions = [],
-  themeOptions = [],
+  mediaOptions,
+  themeOptions,
   submitLabel,
   isSubmitting = false,
 }) => {
   const { t } = useI18n();
+  const resolvedMediaOptions = mediaOptions ?? EMPTY_LOOKUP_OPTIONS;
+  const resolvedThemeOptions = themeOptions ?? EMPTY_LOOKUP_OPTIONS;
   const [formData, setFormData] = useState<JournalistWrite>(() => normalizeInitialData(initialData));
-
-  useEffect(() => {
-    setFormData(normalizeInitialData(initialData));
-  }, [initialData]);
+  const [mediaDrafts, setMediaDrafts] = useState<string[]>(() =>
+    buildMediaDrafts(normalizeInitialData(initialData), resolvedMediaOptions),
+  );
 
   const visibleActivities = useMemo(() => {
     return formData.activities.length > 0 ? formData.activities : [createActivityDraft()];
@@ -81,6 +87,7 @@ export const JournalistForm: React.FC<Props> = ({
       ...prev,
       activities: [...prev.activities, createActivityDraft()],
     }));
+    setMediaDrafts((prev) => [...prev, '']);
   };
 
   const removeActivity = (index: number) => {
@@ -88,6 +95,7 @@ export const JournalistForm: React.FC<Props> = ({
       ...prev,
       activities: prev.activities.filter((_, currentIndex) => currentIndex !== index),
     }));
+    setMediaDrafts((prev) => prev.filter((_, currentIndex) => currentIndex !== index));
   };
 
   return (
@@ -196,10 +204,24 @@ export const JournalistForm: React.FC<Props> = ({
                   <Autocomplete
                     id={`media-${index}`}
                     name={`media-${index}`}
-                    suggestions={mediaOptions.map((m) => m.name)}
+                    suggestions={resolvedMediaOptions.map((m) => m.name)}
+                    value={mediaDrafts[index] ?? resolvedMediaOptions.find((m) => m.id === activity.mediaId)?.name ?? ''}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setMediaDrafts((prev) => {
+                        const next = [...prev];
+                        next[index] = value;
+                        return next;
+                      });
+                    }}
                     onSelect={(name) => {
-                      const selected = mediaOptions.find((m) => m.name === name);
+                      const selected = resolvedMediaOptions.find((m) => m.name === name);
                       if (selected) {
+                        setMediaDrafts((prev) => {
+                          const next = [...prev];
+                          next[index] = selected.name;
+                          return next;
+                        });
                         updateActivity(index, (current) => ({
                           ...current,
                           mediaId: selected.id,
@@ -262,9 +284,9 @@ export const JournalistForm: React.FC<Props> = ({
                       <Autocomplete
                         id={`themes-${index}`}
                         name={`themes-${index}`}
-                        suggestions={themeOptions.map((t) => t.name)}
+                        suggestions={resolvedThemeOptions.map((t) => t.name)}
                         onSelect={(name) => {
-                          const selected = themeOptions.find((t) => t.name === name);
+                          const selected = resolvedThemeOptions.find((t) => t.name === name);
                           if (selected && !activity.themeIds.includes(selected.id)) {
                             updateActivity(index, (current) => ({
                               ...current,
@@ -277,7 +299,7 @@ export const JournalistForm: React.FC<Props> = ({
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                       {activity.themeIds.map((themeId) => {
-                        const theme = themeOptions.find((opt) => opt.id === themeId);
+                        const theme = resolvedThemeOptions.find((opt) => opt.id === themeId);
                         return theme ? (
                           <div key={themeId} className="tag" style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', backgroundColor: '#e8f5e9', borderRadius: '4px' }}>
                             <span>{theme.name}</span>
