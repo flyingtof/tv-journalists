@@ -80,6 +80,8 @@ export const frMessages: Messages = {
   // Journalist form
   'journalistEditor.createTitle': 'Créer un journaliste',
   'journalistEditor.editTitle': 'Modifier un journaliste',
+  'journalistEditor.intro': 'Renseignez les informations du journaliste et ses activités.',
+  'journalistEditor.activitiesHint': 'Ajoutez les activités, les médias et les thématiques associées.',
   'journalistEditor.loading': 'Chargement de l’éditeur...',
   'journalistEditor.loadError': 'Impossible de charger le journaliste. Veuillez réessayer.',
   'journalistEditor.saveError': 'Impossible d’enregistrer le journaliste. Veuillez réessayer.',
