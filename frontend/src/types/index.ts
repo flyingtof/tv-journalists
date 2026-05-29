@@ -6,7 +6,6 @@ export interface Theme {
 export interface JournalistProfileActivity {
   id: string;
   mediaName: string;
-  role: string;
   specificEmail?: string;
   specificPhone?: string;
   themes: Theme[];
@@ -32,7 +31,6 @@ export interface JournalistProfile {
 export interface JournalistActivityWrite {
   id?: string;
   mediaId: string;
-  role: string;
   specificEmail?: string;
   specificPhone?: string;
   themeIds: string[];

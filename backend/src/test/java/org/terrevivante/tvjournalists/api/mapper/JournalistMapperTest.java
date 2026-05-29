@@ -251,7 +251,6 @@ class JournalistMapperTest {
 
         JournalistActivityUpsertDTO activity = new JournalistActivityUpsertDTO();
         activity.setMediaId(mediaId);
-        activity.setRole("Reporter");
         activity.setSpecificEmail("alice.green@press.com");
         activity.setSpecificPhone("+33611111111");
         activity.setThemeIds(List.of(themeId));
@@ -265,7 +264,6 @@ class JournalistMapperTest {
 
         assertThat(cmd.activities()).hasSize(1);
         assertThat(cmd.activities().getFirst().mediaId()).isEqualTo(mediaId);
-        assertThat(cmd.activities().getFirst().role()).isEqualTo("Reporter");
         assertThat(cmd.activities().getFirst().themeIds()).containsExactly(themeId);
     }
 

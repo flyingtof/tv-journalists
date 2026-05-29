@@ -114,7 +114,7 @@ public class JournalistApplicationService
                     cmd.id(),
                     journalistId,
                     media,
-                    cmd.role().trim(),
+                    JournalistActivityUpsertCommand.DEFAULT_ROLE,
                     blankToNull(cmd.specificEmail()),
                     blankToNull(cmd.specificPhone()),
                     themes

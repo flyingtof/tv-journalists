@@ -18,7 +18,6 @@ interface Props {
 const createActivityDraft = (overrides: Partial<JournalistActivityWrite> = {}): JournalistActivityWrite => ({
   id: overrides.id,
   mediaId: overrides.mediaId ?? '',
-  role: overrides.role ?? '',
   specificEmail: overrides.specificEmail ?? '',
   specificPhone: overrides.specificPhone ?? '',
   themeIds: overrides.themeIds ?? [],
@@ -38,7 +37,7 @@ const buildMediaDrafts = (data: JournalistWrite, mediaOptions: LookupOption[]) =
   data.activities.map((activity) => mediaOptions.find((media) => media.id === activity.mediaId)?.name ?? '');
 
 const isBlankActivity = (activity: JournalistActivityWrite) =>
-  !activity.mediaId && !activity.role && !activity.specificEmail && !activity.specificPhone && activity.themeIds.length === 0;
+  !activity.mediaId && !activity.specificEmail && !activity.specificPhone && activity.themeIds.length === 0;
 
 export const JournalistForm: React.FC<Props> = ({
   onSubmit,
@@ -187,7 +186,6 @@ export const JournalistForm: React.FC<Props> = ({
           {visibleActivities.map((activity, index) => {
             const activityNumber = index + 1;
             const mediaLabel = t('journalistForm.activityMedia', { index: activityNumber });
-            const roleLabel = t('journalistForm.activityRole', { index: activityNumber });
             const emailLabel = t('journalistForm.activityEmail', { index: activityNumber });
             const phoneLabel = t('journalistForm.activityPhone', { index: activityNumber });
             const themeLegend = t('journalistForm.activityThemes', { index: activityNumber });
@@ -241,22 +239,6 @@ export const JournalistForm: React.FC<Props> = ({
                       }
                     }}
                     placeholder={t('journalistSearch.mediaPlaceholder')}
-                  />
-                </div>
-
-                <div className="journalist-form-field">
-                  <label htmlFor={`role-${index}`}>
-                    {roleLabel}
-                  </label>
-                  <input
-                    id={`role-${index}`}
-                    type="text"
-                    className="journalist-form-input"
-                    value={activity.role}
-                    onChange={(event) =>
-                      updateActivity(index, (current) => ({ ...current, role: event.target.value }))
-                    }
-                    disabled={isSubmitting}
                   />
                 </div>
 

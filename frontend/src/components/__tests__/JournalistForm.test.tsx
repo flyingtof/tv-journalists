@@ -67,7 +67,6 @@ describe('JournalistForm', () => {
         {
           id: 'activity-1',
           mediaId: 'media-1',
-          role: 'Reporter',
           specificEmail: 'jane.doe@press.com',
           specificPhone: '+33123456789',
           themeIds: ['theme-1'],
@@ -89,7 +88,6 @@ describe('JournalistForm', () => {
     );
 
     expect(screen.getByLabelText(/Média/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Rôle/i)).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /^Activités$/i })).toBeInTheDocument();
     expect(screen.getByText(/^Thématiques 1$/i)).toBeInTheDocument();
   });
@@ -109,7 +107,6 @@ describe('JournalistForm', () => {
           {
             id: 'activity-1',
             mediaId: '',
-            role: '',
             specificEmail: '',
             specificPhone: '',
             themeIds: [],
@@ -146,7 +143,6 @@ describe('JournalistForm', () => {
           {
             id: 'activity-1',
             mediaId: 'media-1',
-            role: 'Reporter',
             specificEmail: '',
             specificPhone: '',
             themeIds: [],
@@ -187,7 +183,6 @@ describe('JournalistForm', () => {
           {
             id: 'activity-1',
             mediaId: '',
-            role: '',
             specificEmail: '',
             specificPhone: '',
             themeIds: [],
@@ -234,7 +229,6 @@ describe('JournalistForm', () => {
           {
             id: 'activity-1',
             mediaId: '',
-            role: '',
             specificEmail: '',
             specificPhone: '',
             themeIds: [],
@@ -291,7 +285,6 @@ describe('JournalistForm', () => {
           {
             id: 'activity-1',
             mediaId: 'media-1',
-            role: 'Reporter',
             specificEmail: '',
             specificPhone: '',
             themeIds: [],
@@ -330,7 +323,6 @@ describe('JournalistForm', () => {
           {
             id: 'activity-1',
             mediaId: 'media-1',
-            role: 'Reporter',
             specificEmail: '',
             specificPhone: '',
             themeIds: [],
@@ -384,7 +376,6 @@ describe('JournalistForm', () => {
           {
             id: 'activity-1',
             mediaId: 'media-1',
-            role: 'Reporter',
             specificEmail: '',
             specificPhone: '',
             themeIds: [],

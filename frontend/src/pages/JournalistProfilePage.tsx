@@ -108,7 +108,7 @@ export const JournalistProfilePage: React.FC = () => {
                   transitionDelay: `${index * 40}ms` 
                 }}
               >
-                <p className="card-text"><strong>{activity.mediaName}</strong> ({activity.role})</p>
+                <p className="card-text"><strong>{activity.mediaName}</strong></p>
                 {activity.specificEmail && <p className="card-text" style={{ marginTop: '4px' }}>Email: {activity.specificEmail}</p>}
                 <div style={{ marginTop: '8px' }}>
                   {activity.themes.map((theme) => (

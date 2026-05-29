@@ -30,7 +30,6 @@ const mapProfileToWrite = (profile: JournalistProfile, mediaOptions: LookupOptio
   activities: profile.activities.map((activity) => ({
     id: activity.id,
     mediaId: mediaOptions.find((media) => media.name === activity.mediaName)?.id ?? '',
-    role: activity.role,
     specificEmail: activity.specificEmail ?? '',
     specificPhone: activity.specificPhone ?? '',
     themeIds: activity.themes.map((theme) => theme.id),
