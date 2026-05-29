@@ -8,6 +8,7 @@
   align-items: center;
   gap: 16px;
   margin-bottom: 16px;
+  justify-content: space-between;
 }
 
 .profile-title {
@@ -35,6 +36,26 @@
   transform: translateX(-6px);
   box-shadow: 0 6px 18px rgba(17, 24, 39, 0.08);
   background: #fafafa;
+}
+
+.edit-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: white;
+  background: #4338ca;
+  border: 1px solid #4338ca;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.edit-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(67, 56, 202, 0.15);
+  background: #3730a3;
 }
 
 .profile-card {
