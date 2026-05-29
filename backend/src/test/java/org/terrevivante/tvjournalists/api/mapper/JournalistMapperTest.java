@@ -271,4 +271,24 @@ class JournalistMapperTest {
     void toCommand_createJournalist_withNullDto_returnsNull() {
         assertThat(mapper.toCommand((JournalistCreateDTO) null)).isNull();
     }
+
+    // ── toActivityCommand(JournalistActivityUpsertDTO) ─────────────────────────
+
+    @Test
+    void toActivityCommand_activityWithoutOptionalFields_mapsCorrectly() {
+        UUID mediaId = UUID.randomUUID();
+        UUID themeId = UUID.randomUUID();
+
+        JournalistActivityUpsertDTO activity = new JournalistActivityUpsertDTO();
+        activity.setMediaId(mediaId);
+        // specificEmail and specificPhone are left null
+        activity.setThemeIds(List.of(themeId));
+
+        var cmd = mapper.toActivityCommand(activity);
+
+        assertThat(cmd.mediaId()).isEqualTo(mediaId);
+        assertThat(cmd.specificEmail()).isNull();
+        assertThat(cmd.specificPhone()).isNull();
+        assertThat(cmd.themeIds()).containsExactly(themeId);
+    }
 }
