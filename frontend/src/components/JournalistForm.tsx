@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useI18n } from '../i18n/useI18n';
+import '../styles/JournalistForm.css';
 import type { JournalistActivityWrite, JournalistWrite, LookupOption } from '../types';
 
 interface Props {
@@ -89,9 +90,9 @@ export const JournalistForm: React.FC<Props> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+    <form onSubmit={handleSubmit} className="journalist-form">
+      <div className="journalist-form-field">
+        <label htmlFor="firstName">
           {t('journalistForm.labelFirstName')}
         </label>
         <input
@@ -103,11 +104,10 @@ export const JournalistForm: React.FC<Props> = ({
           onChange={handleChange}
           required
           disabled={isSubmitting}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         />
       </div>
-      <div>
-        <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+      <div className="journalist-form-field">
+        <label htmlFor="lastName">
           {t('journalistForm.labelLastName')}
         </label>
         <input
@@ -119,11 +119,10 @@ export const JournalistForm: React.FC<Props> = ({
           onChange={handleChange}
           required
           disabled={isSubmitting}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         />
       </div>
-      <div>
-        <label htmlFor="globalEmail" className="block text-sm font-medium text-gray-700">
+      <div className="journalist-form-field">
+        <label htmlFor="globalEmail">
           {t('journalistForm.labelEmail')}
         </label>
         <input
@@ -134,11 +133,10 @@ export const JournalistForm: React.FC<Props> = ({
           value={formData.globalEmail ?? ''}
           onChange={handleChange}
           disabled={isSubmitting}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         />
       </div>
-      <div>
-        <label htmlFor="globalPhone" className="block text-sm font-medium text-gray-700">
+      <div className="journalist-form-field">
+        <label htmlFor="globalPhone">
           {t('journalistForm.labelPhone')}
         </label>
         <input
@@ -149,18 +147,17 @@ export const JournalistForm: React.FC<Props> = ({
           value={formData.globalPhone ?? ''}
           onChange={handleChange}
           disabled={isSubmitting}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         />
       </div>
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-gray-900">{t('journalistEditor.activitiesSection')}</h2>
+      <section className="journalist-form-activities-section">
+        <div className="journalist-form-activities-header">
+          <h2>{t('journalistEditor.activitiesSection')}</h2>
           <button
             type="button"
             onClick={addActivity}
             disabled={isSubmitting}
-            className="inline-flex items-center rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700"
+            className="journalist-form-add-activity"
           >
             {t('journalistEditor.addActivity')}
           </button>
@@ -175,117 +172,115 @@ export const JournalistForm: React.FC<Props> = ({
           const themeLegend = t('journalistForm.activityThemes', { index: activityNumber });
 
           return (
-            <div key={activity.id ?? `activity-${index}`} className="space-y-4 rounded-md border border-gray-200 p-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-gray-800">{t('journalistEditor.activityTitle', { index: activityNumber })}</h3>
+            <div key={activity.id ?? `activity-${index}`} className="journalist-form-activity-card">
+              <div className="journalist-form-activity-card-header">
+                <h3>{t('journalistEditor.activityTitle', { index: activityNumber })}</h3>
                 {formData.activities.length > 0 && (
                   <button
                     type="button"
                     onClick={() => removeActivity(index)}
                     disabled={isSubmitting}
-                    className="text-sm font-medium text-red-600"
+                    className="journalist-form-remove-activity"
                   >
                     {t('journalistEditor.removeActivity')}
                   </button>
                 )}
               </div>
 
-              <div>
-                <label htmlFor={`media-${index}`} className="block text-sm font-medium text-gray-700">
-                  {mediaLabel}
-                </label>
-                <select
-                  id={`media-${index}`}
-                  value={activity.mediaId}
-                  onChange={(event) =>
-                    updateActivity(index, (current) => ({ ...current, mediaId: event.target.value }))
-                  }
-                  disabled={isSubmitting}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                >
-                  <option value="">{t('journalistSearch.mediaPlaceholder')}</option>
-                  {mediaOptions.map((media) => (
-                    <option key={media.id} value={media.id}>
-                      {media.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor={`role-${index}`} className="block text-sm font-medium text-gray-700">
-                  {roleLabel}
-                </label>
-                <input
-                  id={`role-${index}`}
-                  type="text"
-                  value={activity.role}
-                  onChange={(event) =>
-                    updateActivity(index, (current) => ({ ...current, role: event.target.value }))
-                  }
-                  disabled={isSubmitting}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label htmlFor={`specificEmail-${index}`} className="block text-sm font-medium text-gray-700">
-                  {emailLabel}
-                </label>
-                <input
-                  id={`specificEmail-${index}`}
-                  type="email"
-                  value={activity.specificEmail ?? ''}
-                  onChange={(event) =>
-                    updateActivity(index, (current) => ({ ...current, specificEmail: event.target.value }))
-                  }
-                  disabled={isSubmitting}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label htmlFor={`specificPhone-${index}`} className="block text-sm font-medium text-gray-700">
-                  {phoneLabel}
-                </label>
-                <input
-                  id={`specificPhone-${index}`}
-                  type="text"
-                  value={activity.specificPhone ?? ''}
-                  onChange={(event) =>
-                    updateActivity(index, (current) => ({ ...current, specificPhone: event.target.value }))
-                  }
-                  disabled={isSubmitting}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
-
-              <fieldset>
-                <legend className="block text-sm font-medium text-gray-700">{themeLegend}</legend>
-                <div className="mt-2 space-y-2">
-                  {themeOptions.map((theme) => {
-                    const checked = activity.themeIds.includes(theme.id);
-                    return (
-                      <label key={theme.id} className="flex items-center gap-2 text-sm text-gray-700">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={(event) =>
-                            updateActivity(index, (current) => ({
-                              ...current,
-                              themeIds: event.target.checked
-                                ? [...current.themeIds, theme.id]
-                                : current.themeIds.filter((id) => id !== theme.id),
-                            }))
-                          }
-                          disabled={isSubmitting}
-                        />
-                        {theme.name}
-                      </label>
-                    );
-                  })}
+              <div className="journalist-form-activity-grid">
+                <div className="journalist-form-field">
+                  <label htmlFor={`media-${index}`}>
+                    {mediaLabel}
+                  </label>
+                  <select
+                    id={`media-${index}`}
+                    value={activity.mediaId}
+                    onChange={(event) =>
+                      updateActivity(index, (current) => ({ ...current, mediaId: event.target.value }))
+                    }
+                    disabled={isSubmitting}
+                  >
+                    <option value="">{t('journalistSearch.mediaPlaceholder')}</option>
+                    {mediaOptions.map((media) => (
+                      <option key={media.id} value={media.id}>
+                        {media.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              </fieldset>
+
+                <div className="journalist-form-field">
+                  <label htmlFor={`role-${index}`}>
+                    {roleLabel}
+                  </label>
+                  <input
+                    id={`role-${index}`}
+                    type="text"
+                    value={activity.role}
+                    onChange={(event) =>
+                      updateActivity(index, (current) => ({ ...current, role: event.target.value }))
+                    }
+                    disabled={isSubmitting}
+                  />
+                </div>
+
+                <div className="journalist-form-field">
+                  <label htmlFor={`specificEmail-${index}`}>
+                    {emailLabel}
+                  </label>
+                  <input
+                    id={`specificEmail-${index}`}
+                    type="email"
+                    value={activity.specificEmail ?? ''}
+                    onChange={(event) =>
+                      updateActivity(index, (current) => ({ ...current, specificEmail: event.target.value }))
+                    }
+                    disabled={isSubmitting}
+                  />
+                </div>
+
+                <div className="journalist-form-field">
+                  <label htmlFor={`specificPhone-${index}`}>
+                    {phoneLabel}
+                  </label>
+                  <input
+                    id={`specificPhone-${index}`}
+                    type="text"
+                    value={activity.specificPhone ?? ''}
+                    onChange={(event) =>
+                      updateActivity(index, (current) => ({ ...current, specificPhone: event.target.value }))
+                    }
+                    disabled={isSubmitting}
+                  />
+                </div>
+
+                <fieldset className="journalist-form-fieldset journalist-form-activity-grid-full">
+                  <legend>{themeLegend}</legend>
+                  <div className="journalist-form-checkbox-list">
+                    {themeOptions.map((theme) => {
+                      const checked = activity.themeIds.includes(theme.id);
+                      return (
+                        <label key={theme.id} className="journalist-form-checkbox">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(event) =>
+                              updateActivity(index, (current) => ({
+                                ...current,
+                                themeIds: event.target.checked
+                                  ? [...current.themeIds, theme.id]
+                                  : current.themeIds.filter((id) => id !== theme.id),
+                              }))
+                            }
+                            disabled={isSubmitting}
+                          />
+                          {theme.name}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+              </div>
             </div>
           );
         })}
@@ -294,7 +289,7 @@ export const JournalistForm: React.FC<Props> = ({
       <button
         type="submit"
         disabled={isSubmitting}
-        className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60"
+        className="journalist-form-submit"
       >
         {submitLabel ?? t('journalistForm.submit')}
       </button>
