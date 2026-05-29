@@ -59,6 +59,7 @@ export const frMessages: Messages = {
   'journalistProfile.back': 'Retour',
   'journalistProfile.edit': 'Modifier',
   'journalistProfile.delete': 'Supprimer',
+  'journalistProfile.deleting': 'Suppression...',
   'journalistProfile.deleteConfirm': 'Êtes-vous sûr de vouloir supprimer ce journaliste? Cette action ne peut pas être annulée.',
   'journalistProfile.deleteError': 'Impossible de supprimer le journaliste. Veuillez réessayer.',
   
