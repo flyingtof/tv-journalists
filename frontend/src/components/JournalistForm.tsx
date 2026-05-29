@@ -100,85 +100,97 @@ export const JournalistForm: React.FC<Props> = ({
 
   return (
     <form onSubmit={handleSubmit} className="journalist-form">
-      <div className="journalist-form-field">
-        <label htmlFor="firstName">
-          {t('journalistForm.labelFirstName')}
-        </label>
-        <input
-          id="firstName"
-          type="text"
-          name="firstName"
-          autoComplete="given-name"
-          value={formData.firstName}
-          onChange={handleChange}
-          required
-          disabled={isSubmitting}
-        />
-      </div>
-      <div className="journalist-form-field">
-        <label htmlFor="lastName">
-          {t('journalistForm.labelLastName')}
-        </label>
-        <input
-          id="lastName"
-          type="text"
-          name="lastName"
-          autoComplete="family-name"
-          value={formData.lastName}
-          onChange={handleChange}
-          required
-          disabled={isSubmitting}
-        />
-      </div>
-      <div className="journalist-form-field">
-        <label htmlFor="globalEmail">
-          {t('journalistForm.labelEmail')}
-        </label>
-        <input
-          id="globalEmail"
-          type="email"
-          name="globalEmail"
-          autoComplete="email"
-          value={formData.globalEmail ?? ''}
-          onChange={handleChange}
-          disabled={isSubmitting}
-        />
-      </div>
-      <div className="journalist-form-field">
-        <label htmlFor="globalPhone">
-          {t('journalistForm.labelPhone')}
-        </label>
-        <input
-          id="globalPhone"
-          type="text"
-          name="globalPhone"
-          autoComplete="tel"
-          value={formData.globalPhone ?? ''}
-          onChange={handleChange}
-          disabled={isSubmitting}
-        />
-      </div>
-
-      <section className="journalist-form-activities-section">
-        <div className="journalist-form-activities-header">
-          <h2>{t('journalistEditor.activitiesSection')}</h2>
-          <button
-            type="button"
-            onClick={addActivity}
-            disabled={isSubmitting}
-            className="journalist-form-add-activity"
-          >
-            {t('journalistEditor.addActivity')}
-          </button>
+      <div className="journalist-form-card">
+        <div className="journalist-form-grid">
+          <div className="journalist-form-field">
+            <label htmlFor="firstName">
+              {t('journalistForm.labelFirstName')}
+            </label>
+            <input
+              id="firstName"
+              type="text"
+              name="firstName"
+              className="journalist-form-input"
+              autoComplete="given-name"
+              value={formData.firstName}
+              onChange={handleChange}
+              required
+              disabled={isSubmitting}
+            />
+          </div>
+          <div className="journalist-form-field">
+            <label htmlFor="lastName">
+              {t('journalistForm.labelLastName')}
+            </label>
+            <input
+              id="lastName"
+              type="text"
+              name="lastName"
+              className="journalist-form-input"
+              autoComplete="family-name"
+              value={formData.lastName}
+              onChange={handleChange}
+              required
+              disabled={isSubmitting}
+            />
+          </div>
+          <div className="journalist-form-field">
+            <label htmlFor="globalEmail">
+              {t('journalistForm.labelEmail')}
+            </label>
+            <input
+              id="globalEmail"
+              type="email"
+              name="globalEmail"
+              className="journalist-form-input"
+              autoComplete="email"
+              value={formData.globalEmail ?? ''}
+              onChange={handleChange}
+              disabled={isSubmitting}
+            />
+          </div>
+          <div className="journalist-form-field">
+            <label htmlFor="globalPhone">
+              {t('journalistForm.labelPhone')}
+            </label>
+            <input
+              id="globalPhone"
+              type="text"
+              name="globalPhone"
+              className="journalist-form-input"
+              autoComplete="tel"
+              value={formData.globalPhone ?? ''}
+              onChange={handleChange}
+              disabled={isSubmitting}
+            />
+          </div>
         </div>
 
-        {visibleActivities.map((activity, index) => {
-          const activityNumber = index + 1;
-          const mediaLabel = t('journalistForm.activityMedia', { index: activityNumber });
-          const roleLabel = t('journalistForm.activityRole', { index: activityNumber });
-          const emailLabel = t('journalistForm.activityEmail', { index: activityNumber });
-          const phoneLabel = t('journalistForm.activityPhone', { index: activityNumber });
-          const themeLegend = t('journalistForm.activityThemes', { index: activityNumber });
+        <section className="journalist-form-activities-section">
+          <div className="journalist-form-activities-header">
+            <div>
+              <h2>{t('journalistEditor.activitiesSection')}</h2>
+              <p className="journalist-form-section-description">
+                {t('journalistEditor.activitiesHint')}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={addActivity}
+              disabled={isSubmitting}
+              className="journalist-form-add-activity"
+            >
+              {t('journalistEditor.addActivity')}
+            </button>
+          </div>
+
+          {visibleActivities.map((activity, index) => {
+            const activityNumber = index + 1;
+            const mediaLabel = t('journalistForm.activityMedia', { index: activityNumber });
+            const roleLabel = t('journalistForm.activityRole', { index: activityNumber });
+            const emailLabel = t('journalistForm.activityEmail', { index: activityNumber });
+            const phoneLabel = t('journalistForm.activityPhone', { index: activityNumber });
+            const themeLegend = t('journalistForm.activityThemes', { index: activityNumber });
 
           return (
             <div key={activity.id ?? `activity-${index}`} className="journalist-form-activity-card">
@@ -239,6 +251,7 @@ export const JournalistForm: React.FC<Props> = ({
                   <input
                     id={`role-${index}`}
                     type="text"
+                    className="journalist-form-input"
                     value={activity.role}
                     onChange={(event) =>
                       updateActivity(index, (current) => ({ ...current, role: event.target.value }))
@@ -254,6 +267,7 @@ export const JournalistForm: React.FC<Props> = ({
                   <input
                     id={`specificEmail-${index}`}
                     type="email"
+                    className="journalist-form-input"
                     value={activity.specificEmail ?? ''}
                     onChange={(event) =>
                       updateActivity(index, (current) => ({ ...current, specificEmail: event.target.value }))
@@ -269,6 +283,7 @@ export const JournalistForm: React.FC<Props> = ({
                   <input
                     id={`specificPhone-${index}`}
                     type="text"
+                    className="journalist-form-input"
                     value={activity.specificPhone ?? ''}
                     onChange={(event) =>
                       updateActivity(index, (current) => ({ ...current, specificPhone: event.target.value }))
@@ -279,29 +294,27 @@ export const JournalistForm: React.FC<Props> = ({
 
                 <fieldset className="journalist-form-fieldset journalist-form-activity-grid-full">
                   <legend>{themeLegend}</legend>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div>
-                      <Autocomplete
-                        id={`themes-${index}`}
-                        name={`themes-${index}`}
-                        suggestions={resolvedThemeOptions.map((t) => t.name)}
-                        onSelect={(name) => {
-                          const selected = resolvedThemeOptions.find((t) => t.name === name);
-                          if (selected && !activity.themeIds.includes(selected.id)) {
-                            updateActivity(index, (current) => ({
-                              ...current,
-                              themeIds: [...current.themeIds, selected.id],
-                            }));
-                          }
-                        }}
-                        placeholder={t('journalistSearch.themesPlaceholder')}
-                      />
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  <div className="journalist-form-theme-picker">
+                    <Autocomplete
+                      id={`themes-${index}`}
+                      name={`themes-${index}`}
+                      suggestions={resolvedThemeOptions.map((t) => t.name)}
+                      onSelect={(name) => {
+                        const selected = resolvedThemeOptions.find((t) => t.name === name);
+                        if (selected && !activity.themeIds.includes(selected.id)) {
+                          updateActivity(index, (current) => ({
+                            ...current,
+                            themeIds: [...current.themeIds, selected.id],
+                          }));
+                        }
+                      }}
+                      placeholder={t('journalistSearch.themesPlaceholder')}
+                    />
+                    <div className="journalist-form-tag-list">
                       {activity.themeIds.map((themeId) => {
                         const theme = resolvedThemeOptions.find((opt) => opt.id === themeId);
                         return theme ? (
-                          <div key={themeId} className="tag" style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', backgroundColor: '#e8f5e9', borderRadius: '4px' }}>
+                          <div key={themeId} className="journalist-form-tag">
                             <span>{theme.name}</span>
                             <button
                               type="button"
@@ -311,8 +324,7 @@ export const JournalistForm: React.FC<Props> = ({
                                   themeIds: current.themeIds.filter((id) => id !== themeId),
                                 }))
                               }
-                              className="tag-remove"
-                              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '0 2px' }}
+                              className="journalist-form-tag-remove"
                               aria-label={`Remove ${theme.name}`}
                             >
                               &times;
@@ -326,16 +338,17 @@ export const JournalistForm: React.FC<Props> = ({
               </div>
             </div>
           );
-        })}
-      </section>
+          })}
+        </section>
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="journalist-form-submit"
-      >
-        {submitLabel ?? t('journalistForm.submit')}
-      </button>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="journalist-form-submit"
+        >
+          {submitLabel ?? t('journalistForm.submit')}
+        </button>
+      </div>
     </form>
   );
 };
