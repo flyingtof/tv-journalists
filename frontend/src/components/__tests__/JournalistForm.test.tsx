@@ -133,6 +133,42 @@ describe('JournalistForm', () => {
       expect(mediaInput.type).toBe('text');
     });
 
+    it('shows the current media name when editing an activity', () => {
+      const initialData: JournalistWrite = {
+        firstName: 'Jane',
+        lastName: 'Doe',
+        globalEmail: '',
+        globalPhone: '',
+        activities: [
+          {
+            id: 'activity-1',
+            mediaId: 'media-1',
+            role: 'Reporter',
+            specificEmail: '',
+            specificPhone: '',
+            themeIds: [],
+          },
+        ],
+      };
+      const mediaOptions: LookupOption[] = [
+        { id: 'media-1', name: 'France 2' },
+        { id: 'media-2', name: 'France 3' },
+      ];
+
+      render(
+        <I18nProvider>
+          <JournalistForm
+            onSubmit={vi.fn()}
+            initialData={initialData}
+            mediaOptions={mediaOptions}
+            themeOptions={[]}
+          />
+        </I18nProvider>
+      );
+
+      expect(screen.getByLabelText(/Média 1/i)).toHaveValue('France 2');
+    });
+
     it('filters media options as user types', async () => {
       const mediaOptions: LookupOption[] = [
         { id: 'media-1', name: 'France 2' },
