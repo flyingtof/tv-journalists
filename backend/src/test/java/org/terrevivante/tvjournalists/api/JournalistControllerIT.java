@@ -98,7 +98,6 @@ class JournalistControllerIT extends AbstractIntegrationTest {
                         "globalEmail": "john.doe@example.com",
                         "activities": [{
                             "mediaId": "%s",
-                            "role": "Reporter",
                             "specificEmail": "john@press.com",
                             "specificPhone": "+33111111111",
                             "themeIds": ["%s"]
@@ -108,7 +107,6 @@ class JournalistControllerIT extends AbstractIntegrationTest {
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.activities").isArray())
             .andExpect(jsonPath("$.activities[0].mediaName").value("Green Press"))
-            .andExpect(jsonPath("$.activities[0].role").value("Reporter"))
             .andExpect(jsonPath("$.activities[0].specificEmail").value("john@press.com"))
             .andExpect(jsonPath("$.activities[0].themes[0].name").value("Biodiversity"));
     }
@@ -132,15 +130,13 @@ class JournalistControllerIT extends AbstractIntegrationTest {
                         "globalEmail": "jane.doe@example.com",
                         "activities": [{
                             "mediaId": "%s",
-                            "role": "Editor",
                             "themeIds": ["%s"]
                         }]
                     }
                     """.formatted(media.getId(), theme.getId())))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.firstName").value("Jane"))
-            .andExpect(jsonPath("$.activities[0].mediaName").value("Green Press"))
-            .andExpect(jsonPath("$.activities[0].role").value("Editor"));
+            .andExpect(jsonPath("$.activities[0].mediaName").value("Green Press"));
     }
 
     @Test
@@ -256,5 +252,33 @@ class JournalistControllerIT extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.activities[0].themes[0].name").value("Biodiversity"))
             .andExpect(jsonPath("$.activities[0].mediaId").doesNotExist())
             .andExpect(jsonPath("$.activities[0].specificPhone").value("+33600000000"));
+    }
+
+    @Test
+    @WithMockUser(roles = "JOURNALIST_MANAGER")
+    void shouldCreateJournalistWithActivityWithoutOptionalEmailAndPhone() throws Exception {
+        JournalistFixtures fixtures = new JournalistFixtures(entityManager);
+        var theme = fixtures.persistTheme("Biodiversity");
+        var media = fixtures.persistMedia("Green Press", org.terrevivante.tvjournalists.domain.model.MediaType.PRESS);
+        entityManager.flush();
+        entityManager.clear();
+
+        mockMvc.perform(post("/api/v1/journalists")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "firstName": "John",
+                        "lastName": "Doe",
+                        "activities": [{
+                            "mediaId": "%s",
+                            "themeIds": ["%s"]
+                        }]
+                    }
+                    """.formatted(media.getId(), theme.getId())))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.activities").isArray())
+            .andExpect(jsonPath("$.activities[0].mediaName").value("Green Press"))
+            .andExpect(jsonPath("$.activities[0].specificEmail").doesNotExist())
+            .andExpect(jsonPath("$.activities[0].specificPhone").doesNotExist());
     }
 }
