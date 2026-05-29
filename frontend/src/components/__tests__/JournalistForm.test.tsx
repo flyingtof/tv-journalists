@@ -423,5 +423,58 @@ describe('JournalistForm', () => {
       const callArgs = handleSubmit.mock.calls[0][0];
       expect(callArgs.activities[0].themeIds).toContain('theme-1');
     });
+
+    it('allows adding activity when journalist has no activities', async () => {
+      const handleSubmit = vi.fn();
+      const mediaOptions: LookupOption[] = [
+        { id: 'media-1', name: 'France 2' },
+        { id: 'media-2', name: 'TF1' },
+      ];
+      const user = userEvent.setup();
+
+      render(
+        <I18nProvider>
+          <JournalistForm
+            onSubmit={handleSubmit}
+            initialData={{
+              firstName: 'John',
+              lastName: 'Doe',
+              globalEmail: '',
+              globalPhone: '',
+              activities: [], // No activities
+            }}
+            mediaOptions={mediaOptions}
+            themeOptions={[]}
+          />
+        </I18nProvider>
+      );
+
+      // Should show placeholder activity
+      expect(screen.getByText(/Activité 1/i)).toBeInTheDocument();
+
+      // Should show media input for placeholder
+      const mediaInputs = screen.getAllByDisplayValue('');
+      const firstMediaInput = mediaInputs.find(input => input.getAttribute('type') === 'text' && input.id?.includes('media'));
+      expect(firstMediaInput).toBeInTheDocument();
+
+      // Select media for the placeholder activity
+      await user.type(firstMediaInput as HTMLInputElement, 'France');
+
+      await waitFor(() => {
+        expect(screen.getByText('France 2')).toBeInTheDocument();
+      });
+
+      const suggestion = screen.getByText('France 2');
+      fireEvent.mouseDown(suggestion);
+
+      // Submit form
+      await user.click(screen.getByRole('button', { name: /Sauver/i }));
+
+      // Verify the activity was submitted with the selected media
+      expect(handleSubmit).toHaveBeenCalled();
+      const callArgs = handleSubmit.mock.calls[0][0];
+      expect(callArgs.activities).toHaveLength(1);
+      expect(callArgs.activities[0].mediaId).toEqual('media-1');
+    });
   });
 });
