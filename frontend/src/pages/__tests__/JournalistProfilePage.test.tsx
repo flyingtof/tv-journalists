@@ -213,5 +213,67 @@ describe('JournalistProfilePage', () => {
       expect(editLink).toHaveAttribute('href', '/journalists/456/edit');
     });
   });
+
+  describe('Delete action', () => {
+    it('shows delete button for JOURNALIST_MANAGER', async () => {
+      const journalist = {
+        id: '123',
+        firstName: 'John',
+        lastName: 'Doe',
+        globalEmail: 'john@example.com',
+        globalPhone: '+1234567890',
+        activities: [],
+      };
+
+      vi.mocked(fetchWithAuth).mockResolvedValue({
+        json: async () => journalist,
+      } as Response);
+
+      renderProfilePage(createAuthValue(['JOURNALIST_MANAGER']));
+
+      await screen.findByText('John Doe');
+      expect(screen.getByRole('button', { name: /supprimer/i })).toBeInTheDocument();
+    });
+
+    it('shows delete button for ADMIN', async () => {
+      const journalist = {
+        id: '123',
+        firstName: 'Jane',
+        lastName: 'Smith',
+        globalEmail: 'jane@example.com',
+        globalPhone: '+0987654321',
+        activities: [],
+      };
+
+      vi.mocked(fetchWithAuth).mockResolvedValue({
+        json: async () => journalist,
+      } as Response);
+
+      renderProfilePage(createAuthValue(['ADMIN']));
+
+      await screen.findByText('Jane Smith');
+      expect(screen.getByRole('button', { name: /supprimer/i })).toBeInTheDocument();
+    });
+
+    it('does not show delete button for USER', async () => {
+      const journalist = {
+        id: '123',
+        firstName: 'Bob',
+        lastName: 'Brown',
+        globalEmail: 'bob@example.com',
+        globalPhone: '+1122334455',
+        activities: [],
+      };
+
+      vi.mocked(fetchWithAuth).mockResolvedValue({
+        json: async () => journalist,
+      } as Response);
+
+      renderProfilePage(createAuthValue(['USER']));
+
+      await screen.findByText('Bob Brown');
+      expect(screen.queryByRole('button', { name: /supprimer/i })).not.toBeInTheDocument();
+    });
+  });
 });
 
