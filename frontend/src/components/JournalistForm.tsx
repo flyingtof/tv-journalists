@@ -73,12 +73,32 @@ export const JournalistForm: React.FC<Props> = ({
   };
 
   const updateActivity = (index: number, updater: (activity: JournalistActivityWrite) => JournalistActivityWrite) => {
-    setFormData((prev) => ({
-      ...prev,
-      activities: visibleActivities.map((activity, currentIndex) =>
-        currentIndex === index ? updater(activity) : activity,
-      ),
-    }));
+    setFormData((prev) => {
+      // If the index is beyond current activities, we need to add it
+      // This happens when user modifies the placeholder activity on empty form
+      const activities = [...prev.activities];
+      
+      // Fill any gaps between current size and target index
+      while (activities.length <= index) {
+        activities.push(createActivityDraft());
+      }
+      
+      activities[index] = updater(activities[index]);
+      
+      return {
+        ...prev,
+        activities,
+      };
+    });
+    
+    // Also ensure mediaDrafts has enough space
+    setMediaDrafts((prev) => {
+      const drafts = [...prev];
+      while (drafts.length <= index) {
+        drafts.push('');
+      }
+      return drafts;
+    });
   };
 
   const addActivity = () => {
@@ -220,6 +240,10 @@ export const JournalistForm: React.FC<Props> = ({
                       const value = event.target.value;
                       setMediaDrafts((prev) => {
                         const next = [...prev];
+                        // Ensure array has enough space
+                        while (next.length <= index) {
+                          next.push('');
+                        }
                         next[index] = value;
                         return next;
                       });
@@ -229,6 +253,10 @@ export const JournalistForm: React.FC<Props> = ({
                       if (selected) {
                         setMediaDrafts((prev) => {
                           const next = [...prev];
+                          // Ensure array has enough space
+                          while (next.length <= index) {
+                            next.push('');
+                          }
                           next[index] = selected.name;
                           return next;
                         });
