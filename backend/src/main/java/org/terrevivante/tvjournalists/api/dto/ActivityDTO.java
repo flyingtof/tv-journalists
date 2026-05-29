@@ -7,7 +7,6 @@ public record ActivityDTO(
         UUID id,
         UUID mediaId,
         String mediaName,
-        String role,
         String specificEmail,
         String specificPhone,
         Set<ThemeDTO> themes

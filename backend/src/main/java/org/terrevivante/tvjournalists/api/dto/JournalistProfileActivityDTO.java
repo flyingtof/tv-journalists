@@ -6,7 +6,6 @@ import java.util.UUID;
 public record JournalistProfileActivityDTO(
     UUID id,
     String mediaName,
-    String role,
     String specificEmail,
     String specificPhone,
     Set<ThemeDTO> themes

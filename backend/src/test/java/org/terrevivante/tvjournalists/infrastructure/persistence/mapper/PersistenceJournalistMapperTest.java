@@ -93,7 +93,6 @@ class PersistenceJournalistMapperTest {
         ActivityEntity entity = new ActivityEntity();
         entity.setId(UUID.randomUUID());
         entity.setMedia(mediaEntity);
-        entity.setRole("Columnist");
         entity.setSpecificEmail("col@figaro.fr");
         entity.setSpecificPhone("+33612345678");
 
@@ -103,7 +102,6 @@ class PersistenceJournalistMapperTest {
         assertThat(domain.media().name()).isEqualTo("Le Figaro");
         assertThat(domain.media().type()).isEqualTo(MediaType.PRESS);
         assertThat(domain.media().url()).isEqualTo("https://lefigaro.fr");
-        assertThat(domain.role()).isEqualTo("Columnist");
         assertThat(domain.specificEmail()).isEqualTo("col@figaro.fr");
         assertThat(domain.specificPhone()).isEqualTo("+33612345678");
     }
