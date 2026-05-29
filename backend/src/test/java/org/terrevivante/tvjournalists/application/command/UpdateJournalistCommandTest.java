@@ -37,7 +37,7 @@ class UpdateJournalistCommandTest {
             "Martin",
             "alice@example.com",
             "+33123456789",
-            List.of(new JournalistActivityUpsertCommand(null, null, "Presenter", null, null, List.of()))
+            List.of(new JournalistActivityUpsertCommand(null, null, null, null, List.of()))
         );
 
         assertThat(validator.validate(command))

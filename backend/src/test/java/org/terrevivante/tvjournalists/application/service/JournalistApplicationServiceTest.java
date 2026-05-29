@@ -91,7 +91,7 @@ class JournalistApplicationServiceTest {
     void shouldCreateJournalistWithResolvedActivities() {
         CreateJournalistCommand command = new CreateJournalistCommand(
             "Bob", "Brown", "bob@example.com", null,
-            List.of(new JournalistActivityUpsertCommand(null, MEDIA_ID, "Reporter", null, null, List.of()))
+            List.of(new JournalistActivityUpsertCommand(null, MEDIA_ID, null, null, List.of()))
         );
         when(mediaRepository.findById(MEDIA_ID)).thenReturn(Optional.of(SOME_MEDIA));
         when(journalistRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -184,7 +184,7 @@ class JournalistApplicationServiceTest {
         UUID unknownMediaId = UUID.randomUUID();
         CreateJournalistCommand command = new CreateJournalistCommand(
             "Bob", "Brown", null, null,
-            List.of(new JournalistActivityUpsertCommand(null, unknownMediaId, "Reporter", null, null, List.of()))
+            List.of(new JournalistActivityUpsertCommand(null, unknownMediaId, null, null, List.of()))
         );
         when(mediaRepository.findById(unknownMediaId)).thenReturn(Optional.empty());
 
@@ -198,7 +198,7 @@ class JournalistApplicationServiceTest {
         UUID unknownThemeId = UUID.randomUUID();
         CreateJournalistCommand command = new CreateJournalistCommand(
             "Bob", "Brown", null, null,
-            List.of(new JournalistActivityUpsertCommand(null, MEDIA_ID, "Reporter", null, null, List.of(unknownThemeId)))
+            List.of(new JournalistActivityUpsertCommand(null, MEDIA_ID, null, null, List.of(unknownThemeId)))
         );
         when(mediaRepository.findById(MEDIA_ID)).thenReturn(Optional.of(SOME_MEDIA));
         when(themeRepository.findById(unknownThemeId)).thenReturn(Optional.empty());
@@ -217,7 +217,7 @@ class JournalistApplicationServiceTest {
 
         UpdateJournalistCommand command = new UpdateJournalistCommand(
             journalistId, "Alice", "Martin", null, null,
-            List.of(new JournalistActivityUpsertCommand(null, unknownMediaId, "Reporter", null, null, List.of()))
+            List.of(new JournalistActivityUpsertCommand(null, unknownMediaId, null, null, List.of()))
         );
 
         assertThatThrownBy(() -> service.update(command))
@@ -234,7 +234,7 @@ class JournalistApplicationServiceTest {
 
         UpdateJournalistCommand command = new UpdateJournalistCommand(
             journalistId, "Alice", "Martin", null, null,
-            List.of(new JournalistActivityUpsertCommand(null, MEDIA_ID, "Reporter", null, null, List.of(unknownThemeId)))
+            List.of(new JournalistActivityUpsertCommand(null, MEDIA_ID, null, null, List.of(unknownThemeId)))
         );
 
         assertThatThrownBy(() -> service.update(command))
@@ -253,7 +253,7 @@ class JournalistApplicationServiceTest {
             "Martin",
             "alice@example.com",
             null,
-            List.of(new JournalistActivityUpsertCommand(null, MEDIA_ID, "Presenter", null, null, List.of()))
+            List.of(new JournalistActivityUpsertCommand(null, MEDIA_ID, null, null, List.of()))
         );
     }
 }

@@ -207,7 +207,6 @@ class ThemeControllerIT extends AbstractIntegrationTest {
         ActivityEntity activity = new ActivityEntity();
         activity.setJournalist(journalist);
         activity.setMedia(media);
-        activity.setRole("Reporter");
         activity.getThemes().add(theme);
         entityManager.persist(activity);
         entityManager.flush();

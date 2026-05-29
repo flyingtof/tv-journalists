@@ -14,7 +14,6 @@ import java.util.UUID;
 public class JournalistActivityUpsertDTO {
     private UUID id;
     private UUID mediaId;
-    private String role;
     private String specificEmail;
     private String specificPhone;
     private List<UUID> themeIds = new ArrayList<>();

@@ -40,7 +40,6 @@ class ApplicationUserRepositoryAdapterIT extends AbstractIntegrationTest {
         user.setFirstName("Generated");
         user.setLastName("User");
         user.setEnabled(true);
-        user.setRoles(Set.of(role));
         entityManager.persist(user);
 
         entityManager.flush();

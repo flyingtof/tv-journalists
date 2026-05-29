@@ -140,7 +140,6 @@ class JournalistRepositoryAdapterIT extends AbstractIntegrationTest {
 
         assertThat(reloaded.activities()).hasSize(1);
         assertThat(reloaded.activities().getFirst().media().name()).isEqualTo("RT");
-        assertThat(reloaded.activities().getFirst().role()).isEqualTo("Reporter");
         assertThat(reloaded.activities().getFirst().themes())
             .extracting(Theme::name)
             .containsExactly("Climate");
