@@ -1,3 +1,5 @@
+import { JournalistEditorPage } from './JournalistEditorPage';
+
 export function JournalistEditPage() {
-  return <div>Journalist edit page</div>;
+  return <JournalistEditorPage mode="edit" />;
 }

@@ -1,3 +1,5 @@
+import { JournalistEditorPage } from './JournalistEditorPage';
+
 export function JournalistCreatePage() {
-  return <div>Journalist create page</div>;
+  return <JournalistEditorPage mode="create" />;
 }
