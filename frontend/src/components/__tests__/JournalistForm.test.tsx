@@ -12,10 +12,10 @@ describe('JournalistForm', () => {
       </I18nProvider>
     );
     
-    expect(screen.getByLabelText(/First Name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Last Name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Prénom$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Nom$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^Email$/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/^Phone$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Téléphone$/i)).toBeInTheDocument();
   });
 
   it('declares autocomplete metadata on personal contact fields', () => {
@@ -25,10 +25,10 @@ describe('JournalistForm', () => {
       </I18nProvider>
     );
 
-    expect(screen.getByLabelText(/First Name/i)).toHaveAttribute('autocomplete', 'given-name');
-    expect(screen.getByLabelText(/Last Name/i)).toHaveAttribute('autocomplete', 'family-name');
+    expect(screen.getByLabelText(/^Prénom$/i)).toHaveAttribute('autocomplete', 'given-name');
+    expect(screen.getByLabelText(/^Nom$/i)).toHaveAttribute('autocomplete', 'family-name');
     expect(screen.getByLabelText(/^Email$/i)).toHaveAttribute('autocomplete', 'email');
-    expect(screen.getByLabelText(/^Phone$/i)).toHaveAttribute('autocomplete', 'tel');
+    expect(screen.getByLabelText(/^Téléphone$/i)).toHaveAttribute('autocomplete', 'tel');
   });
 
   it('calls onSubmit with form data', () => {
@@ -39,11 +39,11 @@ describe('JournalistForm', () => {
       </I18nProvider>
     );
     
-    fireEvent.change(screen.getByLabelText(/First Name/i), { target: { value: 'John' } });
-    fireEvent.change(screen.getByLabelText(/Last Name/i), { target: { value: 'Doe' } });
+    fireEvent.change(screen.getByLabelText(/^Prénom$/i), { target: { value: 'John' } });
+    fireEvent.change(screen.getByLabelText(/^Nom$/i), { target: { value: 'Doe' } });
     fireEvent.change(screen.getByLabelText(/^Email$/i), { target: { value: 'john@example.com' } });
     
-    fireEvent.click(screen.getByRole('button', { name: /Save Profile/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Sauver/i }));
     
     expect(handleSubmit).toHaveBeenCalledWith({
       firstName: 'John',
