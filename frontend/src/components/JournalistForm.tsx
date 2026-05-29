@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useI18n } from '../i18n/useI18n';
+import { Autocomplete } from './Autocomplete';
 import '../styles/JournalistForm.css';
 import type { JournalistActivityWrite, JournalistWrite, LookupOption } from '../types';
 
@@ -192,21 +193,21 @@ export const JournalistForm: React.FC<Props> = ({
                   <label htmlFor={`media-${index}`}>
                     {mediaLabel}
                   </label>
-                  <select
+                  <Autocomplete
                     id={`media-${index}`}
-                    value={activity.mediaId}
-                    onChange={(event) =>
-                      updateActivity(index, (current) => ({ ...current, mediaId: event.target.value }))
-                    }
-                    disabled={isSubmitting}
-                  >
-                    <option value="">{t('journalistSearch.mediaPlaceholder')}</option>
-                    {mediaOptions.map((media) => (
-                      <option key={media.id} value={media.id}>
-                        {media.name}
-                      </option>
-                    ))}
-                  </select>
+                    name={`media-${index}`}
+                    suggestions={mediaOptions.map((m) => m.name)}
+                    onSelect={(name) => {
+                      const selected = mediaOptions.find((m) => m.name === name);
+                      if (selected) {
+                        updateActivity(index, (current) => ({
+                          ...current,
+                          mediaId: selected.id,
+                        }));
+                      }
+                    }}
+                    placeholder={t('journalistSearch.mediaPlaceholder')}
+                  />
                 </div>
 
                 <div className="journalist-form-field">
@@ -256,28 +257,48 @@ export const JournalistForm: React.FC<Props> = ({
 
                 <fieldset className="journalist-form-fieldset journalist-form-activity-grid-full">
                   <legend>{themeLegend}</legend>
-                  <div className="journalist-form-checkbox-list">
-                    {themeOptions.map((theme) => {
-                      const checked = activity.themeIds.includes(theme.id);
-                      return (
-                        <label key={theme.id} className="journalist-form-checkbox">
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={(event) =>
-                              updateActivity(index, (current) => ({
-                                ...current,
-                                themeIds: event.target.checked
-                                  ? [...current.themeIds, theme.id]
-                                  : current.themeIds.filter((id) => id !== theme.id),
-                              }))
-                            }
-                            disabled={isSubmitting}
-                          />
-                          {theme.name}
-                        </label>
-                      );
-                    })}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div>
+                      <Autocomplete
+                        id={`themes-${index}`}
+                        name={`themes-${index}`}
+                        suggestions={themeOptions.map((t) => t.name)}
+                        onSelect={(name) => {
+                          const selected = themeOptions.find((t) => t.name === name);
+                          if (selected && !activity.themeIds.includes(selected.id)) {
+                            updateActivity(index, (current) => ({
+                              ...current,
+                              themeIds: [...current.themeIds, selected.id],
+                            }));
+                          }
+                        }}
+                        placeholder={t('journalistSearch.themesPlaceholder')}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      {activity.themeIds.map((themeId) => {
+                        const theme = themeOptions.find((opt) => opt.id === themeId);
+                        return theme ? (
+                          <div key={themeId} className="tag" style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', backgroundColor: '#e8f5e9', borderRadius: '4px' }}>
+                            <span>{theme.name}</span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateActivity(index, (current) => ({
+                                  ...current,
+                                  themeIds: current.themeIds.filter((id) => id !== themeId),
+                                }))
+                              }
+                              className="tag-remove"
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', padding: '0 2px' }}
+                              aria-label={`Remove ${theme.name}`}
+                            >
+                              &times;
+                            </button>
+                          </div>
+                        ) : null;
+                      })}
+                    </div>
                   </div>
                 </fieldset>
               </div>
