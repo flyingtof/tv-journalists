@@ -13,6 +13,7 @@ import org.terrevivante.tvjournalists.infrastructure.persistence.entity.ThemeEnt
 import org.terrevivante.tvjournalists.domain.model.MediaType;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -72,5 +73,20 @@ class ReferenceDataControllerIT extends AbstractIntegrationTest {
 
         assertThatThrownBy(() -> entityManager.flush())
             .hasMessageContaining("ux_theme_name_lower");
+    }
+
+    @Test
+    void shouldSeedEmailsWithoutWhitespace() {
+        Number count = (Number) entityManager.createNativeQuery("""
+            SELECT COUNT(*)
+            FROM (
+                SELECT global_email AS email FROM journalist
+                UNION ALL
+                SELECT specific_email AS email FROM activity
+            ) seeded_emails
+            WHERE email ~ '\\s'
+        """).getSingleResult();
+
+        assertThat(count.longValue()).isZero();
     }
 }
