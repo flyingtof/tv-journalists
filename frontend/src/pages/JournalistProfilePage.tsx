@@ -79,7 +79,10 @@ export const JournalistProfilePage: React.FC = () => {
           {journalist.firstName} {journalist.lastName}
         </h1>
         {canEdit && (
-          <EditButton journalistId={journalist.id} />
+          <div className="profile-actions">
+            <EditButton journalistId={journalist.id} />
+            <DeleteButton journalistId={journalist.id} />
+          </div>
         )}
       </div>
       
@@ -174,5 +177,51 @@ const EditButton: React.FC<EditButtonProps> = ({ journalistId }) => {
     >
       {t('journalistProfile.edit')}
     </a>
+  );
+};
+
+interface DeleteButtonProps {
+  journalistId: string;
+  onDeleteSuccess?: () => void;
+}
+
+const DeleteButton: React.FC<DeleteButtonProps> = ({ journalistId, onDeleteSuccess }) => {
+  const { t } = useI18n();
+  const navigate = useNavigate();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!confirm(t('journalistProfile.deleteConfirm'))) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const res = await fetchWithAuth(`/api/v1/journalists/${journalistId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!res.ok) {
+        throw new Error('Failed to delete');
+      }
+
+      onDeleteSuccess?.();
+      navigate('/');
+    } catch (error) {
+      console.error('Failed to delete journalist:', error);
+      alert(t('journalistProfile.deleteError'));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <button 
+      onClick={handleDelete}
+      disabled={isDeleting}
+      className="delete-button"
+    >
+      {isDeleting ? t('journalistProfile.deleting') : t('journalistProfile.delete')}
+    </button>
   );
 };
