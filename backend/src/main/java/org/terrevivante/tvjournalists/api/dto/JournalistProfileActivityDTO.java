@@ -8,6 +8,6 @@ public record JournalistProfileActivityDTO(
     String mediaName,
     String role,
     String specificEmail,
+    String specificPhone,
     Set<ThemeDTO> themes
 ) {}
-

@@ -245,7 +245,7 @@ class JournalistControllerIT extends AbstractIntegrationTest {
         JournalistFixtures fixtures = new JournalistFixtures(entityManager);
         var theme = fixtures.persistTheme("Biodiversity");
         var media = fixtures.persistMedia("Green Press", org.terrevivante.tvjournalists.domain.model.MediaType.PRESS);
-        var journalist = fixtures.persistJournalistWithActivity("Alice", "Green", media, theme);
+        var journalist = fixtures.persistJournalistWithActivity("Alice", "Green", media, "+33600000000", theme);
         entityManager.flush();
         entityManager.clear();
 
@@ -255,6 +255,6 @@ class JournalistControllerIT extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.activities[0].mediaName").value("Green Press"))
             .andExpect(jsonPath("$.activities[0].themes[0].name").value("Biodiversity"))
             .andExpect(jsonPath("$.activities[0].mediaId").doesNotExist())
-            .andExpect(jsonPath("$.activities[0].specificPhone").doesNotExist());
+            .andExpect(jsonPath("$.activities[0].specificPhone").value("+33600000000"));
     }
 }

@@ -8,6 +8,7 @@ export interface JournalistProfileActivity {
   mediaName: string;
   role: string;
   specificEmail?: string;
+  specificPhone?: string;
   themes: Theme[];
 }
 
@@ -28,11 +29,28 @@ export interface JournalistProfile {
   activities: JournalistProfileActivity[];
 }
 
-export interface JournalistCreate {
+export interface JournalistActivityWrite {
+  id?: string;
+  mediaId: string;
+  role: string;
+  specificEmail?: string;
+  specificPhone?: string;
+  themeIds: string[];
+}
+
+export interface JournalistWrite {
   firstName: string;
   lastName: string;
   globalEmail?: string;
   globalPhone?: string;
+  activities: JournalistActivityWrite[];
+}
+
+export type JournalistCreate = JournalistWrite;
+
+export interface LookupOption {
+  id: string;
+  name: string;
 }
 
 export interface Page<T> {

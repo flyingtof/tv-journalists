@@ -50,12 +50,19 @@ public class JournalistFixtures {
 
     public JournalistEntity persistJournalistWithActivity(String firstName, String lastName,
                                                           MediaEntity media, ThemeEntity... themes) {
+        return persistJournalistWithActivity(firstName, lastName, media, null, themes);
+    }
+
+    public JournalistEntity persistJournalistWithActivity(String firstName, String lastName,
+                                                          MediaEntity media, String specificPhone,
+                                                          ThemeEntity... themes) {
         JournalistEntity journalist = new JournalistEntity(firstName, lastName);
         entityManager.persist(journalist);
 
         ActivityEntity activity = new ActivityEntity();
         activity.setJournalist(journalist);
         activity.setMedia(media);
+        activity.setSpecificPhone(specificPhone);
         for (ThemeEntity theme : themes) {
             activity.getThemes().add(theme);
         }
