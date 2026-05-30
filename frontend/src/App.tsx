@@ -73,6 +73,9 @@ function Navigation() {
                 <Link to="/" className="nav-link">
                   {t('app.nav.search')}
                 </Link>
+                <Link to="/guide" className="nav-link">
+                  {t('app.nav.userGuide')}
+                </Link>
                 {canManageUsers && (
                   <Link to="/admin/users" className="nav-link">
                     {t('app.nav.users')}
@@ -88,9 +91,6 @@ function Navigation() {
                     {t('app.nav.createJournalist')}
                   </Link>
                 )}
-                <Link to="/guide" className="nav-link">
-                  {t('app.nav.userGuide')}
-                </Link>
               </div>
             )}
 
